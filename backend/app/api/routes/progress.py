@@ -9,23 +9,23 @@ _progress_store: dict[str, ProgressStateSchema] = {
     "player-1": ProgressStateSchema(
         userId="player-1",
         activeWorldId="python-basics",
-        currentLevelId="level-1-print",
+        currentLevelId="level-1-first-program",
         completedLevels=[],
         levelStates={
-            "level-1-print": LevelProgressSchema(
-                levelId="level-1-print",
+            "level-1-first-program": LevelProgressSchema(
+                levelId="level-1-first-program",
                 status="AVAILABLE",
                 score=0,
                 stars=0
             ),
-            "level-2-variables": LevelProgressSchema(
-                levelId="level-2-variables",
+            "level-2-variables-data": LevelProgressSchema(
+                levelId="level-2-variables-data",
                 status="LOCKED",
                 score=0,
                 stars=0
             ),
-            "level-3-input": LevelProgressSchema(
-                levelId="level-3-input",
+            "level-3-user-input": LevelProgressSchema(
+                levelId="level-3-user-input",
                 status="LOCKED",
                 score=0,
                 stars=0
@@ -41,17 +41,18 @@ def get_user_progress(user_id: str):
         _progress_store[user_id] = ProgressStateSchema(
             userId=user_id,
             activeWorldId="python-basics",
-            currentLevelId="level-1-print",
+            currentLevelId="level-1-first-program",
             completedLevels=[],
             levelStates={
-                "level-1-print": LevelProgressSchema(
-                    levelId="level-1-print",
+                "level-1-first-program": LevelProgressSchema(
+                    levelId="level-1-first-program",
                     status="AVAILABLE",
                     score=0,
                     stars=0
                 )
             }
         )
+
     return _progress_store[user_id]
 
 @router.post("", response_model=ProgressStateSchema)

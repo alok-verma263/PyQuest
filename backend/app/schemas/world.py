@@ -48,6 +48,7 @@ class LevelSchema(BaseModel):
     map_y: int = Field(..., alias="mapY")
     xp_reward: int = Field(50, alias="xpReward")
     coin_reward: int = Field(15, alias="coinReward")
+    topics: List[str] = Field(default_factory=list)
     lessons: List[LessonSlideSchema] = Field(default_factory=list)
     challenges: List[ChallengeSchema] = Field(default_factory=list)
 

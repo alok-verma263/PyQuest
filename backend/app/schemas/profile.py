@@ -15,6 +15,7 @@ class BadgeSchema(BaseModel):
 class PlayerProfileSchema(BaseModel):
     id: str = "player-1"
     username: str = "PyQuest Apprentice"
+    avatar_id: Optional[str] = Field("char-a", alias="avatarId")
     title: str = "Code Wanderer"
     level: int = 1
     xp: int = 0
@@ -22,6 +23,7 @@ class PlayerProfileSchema(BaseModel):
     coins: int = 25
     energy: int = 100
     badges: List[BadgeSchema] = Field(default_factory=list)
+
 
     class Config:
         populate_by_name = True

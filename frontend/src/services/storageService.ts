@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
 const DEFAULT_PROFILE: PlayerProfile = {
   id: 'player-1',
   username: 'PyQuest Apprentice',
+  avatarId: 'char-a',
   title: 'Code Wanderer',
   level: 1,
   xp: 0,
@@ -30,29 +31,30 @@ const DEFAULT_PROFILE: PlayerProfile = {
 const DEFAULT_PROGRESS: ProgressState = {
   userId: 'player-1',
   activeWorldId: 'python-basics',
-  currentLevelId: 'level-1-print',
+  currentLevelId: 'level-1-first-program',
   completedLevels: [],
   levelStates: {
-    'level-1-print': {
-      levelId: 'level-1-print',
+    'level-1-first-program': {
+      levelId: 'level-1-first-program',
       status: 'AVAILABLE',
       score: 0,
       stars: 0,
     },
-    'level-2-variables': {
-      levelId: 'level-2-variables',
+    'level-2-variables-data': {
+      levelId: 'level-2-variables-data',
       status: 'LOCKED',
       score: 0,
       stars: 0,
     },
-    'level-3-input': {
-      levelId: 'level-3-input',
+    'level-3-user-input': {
+      levelId: 'level-3-user-input',
       status: 'LOCKED',
       score: 0,
       stars: 0,
     },
   },
 };
+
 
 export const StorageService = {
   getProfile(): PlayerProfile {

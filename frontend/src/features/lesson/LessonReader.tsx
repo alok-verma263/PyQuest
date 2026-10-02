@@ -72,21 +72,30 @@ export const LessonReader: React.FC<LessonReaderProps> = ({
           {slide.content}
         </div>
 
-        {/* Code Example Box */}
+        {/* Code Example Box with Visual Output Display */}
         {slide.codeExample && (
-          <div className="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-inner">
+          <div className="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-inner space-y-0">
             <div className="flex items-center justify-between px-4 py-2 bg-slate-900/90 border-b border-slate-800 text-xs text-slate-400">
               <span className="flex items-center gap-1.5 font-mono text-sky-300">
                 <Sparkles size={13} />
                 Python Incantation
               </span>
-              <span className="font-mono text-[11px]">example.py</span>
+              <span className="font-mono text-[11px]">program.py</span>
             </div>
             <pre className="p-4 text-emerald-400 font-mono text-sm leading-relaxed overflow-x-auto select-text">
               <code>{slide.codeExample}</code>
             </pre>
+
+            {/* Visual Output Console Preview */}
+            <div className="px-4 py-2.5 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between text-xs">
+              <span className="text-slate-400 font-bold font-mono">Console Output Screen:</span>
+              <span className="font-mono px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 font-bold border border-emerald-600/30">
+                Hello, Python!
+              </span>
+            </div>
           </div>
         )}
+
 
         {/* Pro Tip Callout */}
         {slide.tip && (

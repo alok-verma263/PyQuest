@@ -1,6 +1,7 @@
 import React from 'react';
 import type { PlayerProfile } from '../../types/profile';
-import { Coins, Sparkles, Volume2, VolumeX, Shield } from 'lucide-react';
+import { AVATAR_OPTIONS } from '../../data/defaultCurriculum';
+import { Coins, Sparkles, Volume2, VolumeX } from 'lucide-react';
 
 export interface QuestHudProps {
   profile: PlayerProfile;
@@ -16,6 +17,7 @@ export const QuestHud: React.FC<QuestHudProps> = ({
   onOpenProfile,
 }) => {
   const xpPercentage = Math.min(100, Math.round((profile.xp / profile.xpToNextLevel) * 100));
+  const avatar = AVATAR_OPTIONS.find((a) => a.id === profile.avatarId) || AVATAR_OPTIONS[0];
 
   return (
     <header className="sticky top-0 z-40 w-full bg-slate-950/90 border-b border-slate-800/80 backdrop-blur-md px-4 py-2.5">
@@ -28,13 +30,14 @@ export const QuestHud: React.FC<QuestHudProps> = ({
         >
           {/* Avatar Icon */}
           <div className="relative w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-600 via-sky-600 to-emerald-500 p-0.5 shadow-md group-hover:scale-105 transition-transform">
-            <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center text-amber-400 font-extrabold text-sm">
-              <Shield size={18} className="text-amber-400" />
+            <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center text-base">
+              {avatar.emoji}
             </div>
             <div className="absolute -bottom-1 -right-1 bg-amber-500 text-stone-950 text-[10px] font-black rounded-full px-1.5 py-0.2 shadow">
               {profile.level}
             </div>
           </div>
+
 
           <div className="flex flex-col text-left">
             <span className="text-xs font-bold text-slate-100 group-hover:text-amber-300 transition-colors">

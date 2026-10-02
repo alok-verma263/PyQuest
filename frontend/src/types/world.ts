@@ -45,6 +45,7 @@ export interface Level {
   mapY: number;
   xpReward: number;
   coinReward: number;
+  topics?: string[];
   lessons: LessonSlide[];
   challenges: Challenge[];
 }

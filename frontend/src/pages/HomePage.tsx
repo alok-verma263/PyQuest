@@ -1,70 +1,153 @@
 import React from 'react';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
-import { Play, Sparkles, BookOpen, Trophy, Terminal } from 'lucide-react';
+import type { PlayerProfile } from '../types/profile';
+import type { ProgressState } from '../types/progress';
+import { Play, Sparkles, BookOpen, Trophy, Terminal, User, Settings, Shield } from 'lucide-react';
+
 
 export interface HomePageProps {
+  profile: PlayerProfile;
+  progress: ProgressState;
   onStartAdventure: () => void;
-  onOpenPractice: () => void;
+  onContinueAdventure: () => void;
+  onOpenProfile: () => void;
+  onOpenSettings: () => void;
   onPlaySound: (sound: 'click') => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
+  profile,
+  progress,
   onStartAdventure,
-  onOpenPractice,
+  onContinueAdventure,
+  onOpenProfile,
+  onOpenSettings,
   onPlaySound,
 }) => {
-  return (
-    <div className="w-full max-w-5xl mx-auto space-y-12 py-8 px-4 animate-in fade-in duration-300">
-      {/* Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden border-2 border-slate-800 bg-gradient-to-b from-slate-900/90 via-slate-950/95 to-slate-950 p-8 sm:p-14 text-center shadow-2xl backdrop-blur-md">
-        <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-sky-500/10 via-amber-500/5 to-transparent pointer-events-none" />
+  const hasProgress = progress.completedLevels.length > 0 || profile.xp > 0;
 
-        {/* Quest Badge */}
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-950/80 border border-sky-500/40 text-sky-300 text-xs font-black tracking-wider uppercase mb-6 shadow-[0_0_15px_rgba(56,189,248,0.2)]">
-          <Sparkles size={14} className="text-sky-400" />
-          The Gamified Python Odyssey
+  return (
+    <div className="w-full max-w-5xl mx-auto space-y-10 py-6 px-4 animate-in fade-in duration-300">
+      {/* Hero / Main Menu Card */}
+      <div className="relative rounded-3xl overflow-hidden border-2 border-slate-800 bg-gradient-to-b from-slate-900/95 via-slate-950/95 to-slate-950 p-8 sm:p-14 text-center shadow-2xl backdrop-blur-md">
+        {/* Ambient Top Glow */}
+        <div className="absolute top-0 inset-x-0 h-48 bg-gradient-to-b from-sky-500/15 via-emerald-500/5 to-transparent pointer-events-none" />
+
+        {/* Fantasy Pixel Serpent Crest */}
+        <div className="flex justify-center mb-6">
+          <div className="relative inline-flex items-center justify-center p-3 rounded-2xl bg-slate-950/80 border-2 border-amber-400/40 shadow-[0_0_30px_rgba(251,191,36,0.25)]">
+            <span className="text-4xl sm:text-5xl select-none">⚔️🐍</span>
+            <div className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-amber-500 text-stone-950 text-[10px] font-black uppercase tracking-wider shadow">
+              RPG
+            </div>
+          </div>
         </div>
 
-        <h1 className="text-4xl sm:text-6xl font-black text-white tracking-tight leading-tight">
-          Learn Python. <br />
-          <span className="bg-gradient-to-r from-sky-400 via-indigo-300 to-amber-300 bg-clip-text text-transparent">
-            Complete Quests.
-          </span>{' '}
-          Master Code.
+        {/* PyQuest Logo Title */}
+        <h1 className="text-4xl sm:text-7xl font-black text-white tracking-tight leading-none mb-3">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-emerald-300 to-amber-300">
+            PyQuest
+          </span>
         </h1>
 
-        <p className="max-w-2xl mx-auto text-sm sm:text-lg text-slate-300 mt-4 leading-relaxed font-normal">
-          Embark on an interactive adventure where programming theory transforms into magical trials.
-          Conquer real Python coding challenges in your browser sandbox, earn gold, and level up!
+        {/* Official Tagline */}
+        <p className="text-base sm:text-xl font-bold text-amber-300 tracking-wide mb-4">
+          Learn Python. Complete Quests. Master Code.
         </p>
 
-        {/* Call to Actions */}
-        <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
-          <Button
-            variant="gold"
-            size="lg"
-            glow
-            icon={<Play size={18} className="fill-current" />}
-            onClick={() => {
-              onPlaySound('click');
-              onStartAdventure();
-            }}
-          >
-            Enter Adventure Realm
-          </Button>
+        <p className="max-w-xl mx-auto text-xs sm:text-sm text-slate-300 mb-8 leading-relaxed font-normal">
+          Journey through enchanted programming realms, tackle interactive theory scrolls,
+          and conquer coding trials in a live browser WebAssembly sandbox.
+        </p>
+
+        {/* Main Menu Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 max-w-lg mx-auto">
+          {hasProgress ? (
+            <>
+              <Button
+                variant="gold"
+                size="lg"
+                glow
+                className="w-full sm:w-auto px-8 py-3.5 text-base"
+                icon={<Play size={18} className="fill-current" />}
+                onClick={() => {
+                  onPlaySound('click');
+                  onContinueAdventure();
+                }}
+              >
+                Continue Quest
+              </Button>
+              <Button
+                variant="secondary"
+                size="lg"
+                className="w-full sm:w-auto px-6 py-3.5 text-sm"
+                icon={<Sparkles size={16} className="text-sky-400" />}
+                onClick={() => {
+                  onPlaySound('click');
+                  onStartAdventure();
+                }}
+              >
+                Adventure Map
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="gold"
+              size="lg"
+              glow
+              className="w-full sm:w-auto px-10 py-4 text-base"
+              icon={<Play size={18} className="fill-current" />}
+              onClick={() => {
+                onPlaySound('click');
+                onStartAdventure();
+              }}
+            >
+              Start Adventure
+            </Button>
+          )}
 
           <Button
             variant="secondary"
             size="lg"
-            icon={<Terminal size={18} className="text-sky-400" />}
+            className="w-full sm:w-auto px-5 py-3.5 text-sm"
+            icon={<User size={16} className="text-amber-400" />}
             onClick={() => {
               onPlaySound('click');
-              onOpenPractice();
+              onOpenProfile();
             }}
           >
-            Practice Arena
+            Profile
           </Button>
+
+          <Button
+            variant="ghost"
+            size="lg"
+            className="w-full sm:w-auto px-4 py-3.5 text-sm"
+            icon={<Settings size={16} />}
+            onClick={() => {
+              onPlaySound('click');
+              onOpenSettings();
+            }}
+          >
+            Settings
+          </Button>
+        </div>
+
+        {/* Current Player Status Bar */}
+        <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <Shield size={14} className="text-sky-400" />
+            <span>Adventurer: <strong className="text-slate-200">{profile.username}</strong></span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="text-amber-400" />
+            <span>Level <strong className="text-amber-300">{profile.level}</strong> ({profile.xp} XP)</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Trophy size={14} className="text-emerald-400" />
+            <span>Completed Quests: <strong className="text-emerald-300">{progress.completedLevels.length}</strong></span>
+          </div>
         </div>
       </div>
 

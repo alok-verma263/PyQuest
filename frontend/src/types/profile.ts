@@ -6,9 +6,21 @@ export interface Badge {
   unlockedAt?: string;
 }
 
+export interface AvatarOption {
+  id: string;
+  name: string;
+  role: string;
+  emoji: string;
+  color: string;
+  border: string;
+  bg: string;
+  description: string;
+}
+
 export interface PlayerProfile {
   id: string;
   username: string;
+  avatarId?: string;
   title: string;
   level: number;
   xp: number;
@@ -17,3 +29,4 @@ export interface PlayerProfile {
   energy: number;
   badges: Badge[];
 }
+

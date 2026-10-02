@@ -15,6 +15,8 @@ import { PracticePage } from './pages/PracticePage';
 import { ProgressPage } from './pages/ProgressPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { QuestContainer } from './features/challenge/QuestContainer';
+import { ProfileCreationModal } from './features/profile/ProfileCreationModal';
+import { SettingsModal } from './components/common/SettingsModal';
 import { pyodideRunner } from './services/pyodideRunner';
 
 export const App: React.FC = () => {
@@ -28,6 +30,10 @@ export const App: React.FC = () => {
   const [progress, setProgress] = useState<ProgressState>(() => StorageService.getProgress());
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [backendStatus, setBackendStatus] = useState<string>('checking');
+
+  // Modals
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
 
   // Initial data loading & backend health check
   useEffect(() => {
@@ -63,7 +69,7 @@ export const App: React.FC = () => {
 
     // Preload Pyodide in background for instant code trials
     pyodideRunner.initPyodide().catch(() => {
-      // Background preload error silently handled
+      // Handled silently
     });
 
     return () => {
@@ -71,8 +77,18 @@ export const App: React.FC = () => {
     };
   }, [profile.id]);
 
+  // Handle Profile Creation / Update from Modal
+  const handleSaveProfile = useCallback((updated: PlayerProfile) => {
+    setProfile(updated);
+    ApiService.saveProfile(updated);
+    setIsProfileModalOpen(false);
+    // Transition straight into Adventure Map
+    setActiveLevel(null);
+    setActiveTab('adventure');
+  }, []);
+
   // Handle Level Selection
-  const handleSelectLevel = useCallback((level: Level) => {
+  const handleStartLevel = useCallback((level: Level) => {
     setActiveLevel(level);
   }, []);
 
@@ -212,11 +228,19 @@ export const App: React.FC = () => {
           <>
             {activeTab === 'home' && (
               <HomePage
+                profile={profile}
+                progress={progress}
                 onStartAdventure={() => {
+                  setIsProfileModalOpen(true);
+                }}
+                onContinueAdventure={() => {
                   setActiveTab('adventure');
                 }}
-                onOpenPractice={() => {
-                  setActiveTab('practice');
+                onOpenProfile={() => {
+                  setActiveTab('profile');
+                }}
+                onOpenSettings={() => {
+                  setIsSettingsModalOpen(true);
                 }}
                 onPlaySound={playSound}
               />
@@ -226,7 +250,8 @@ export const App: React.FC = () => {
               <AdventurePage
                 world={activeWorld}
                 progress={progress}
-                onSelectLevel={handleSelectLevel}
+                profile={profile}
+                onStartLevel={handleStartLevel}
                 onPlaySound={playSound}
               />
             )}
@@ -234,7 +259,7 @@ export const App: React.FC = () => {
             {activeTab === 'practice' && (
               <PracticePage
                 world={activeWorld}
-                onSelectLevel={handleSelectLevel}
+                onSelectLevel={handleStartLevel}
                 onPlaySound={playSound}
               />
             )}
@@ -254,6 +279,24 @@ export const App: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* Profile Creation / Avatar Selection Modal */}
+      <ProfileCreationModal
+        isOpen={isProfileModalOpen}
+        initialProfile={profile}
+        onSaveProfile={handleSaveProfile}
+        onPlaySound={playSound}
+      />
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        muted={muted}
+        onToggleMute={toggleMute}
+        onResetProgress={handleResetProgress}
+        onPlaySound={playSound}
+      />
 
       {/* Footer */}
       <footer className="w-full border-t border-slate-900 bg-slate-950/80 py-4 px-6 text-center text-xs text-slate-500">

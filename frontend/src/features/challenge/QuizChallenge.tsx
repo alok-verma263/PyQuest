@@ -69,13 +69,23 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
 
       {/* Instructions & Question */}
       <div className="space-y-3">
-        <p className="text-xs text-slate-400">{challenge.instructions}</p>
+        <h4 className="text-sm sm:text-base font-extrabold text-white">
+          {challenge.instructions}
+        </h4>
+
         {challenge.question && (
-          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-sm leading-relaxed whitespace-pre-wrap select-text">
-            {challenge.question}
+          <div className="rounded-2xl bg-slate-950 border border-slate-700/80 overflow-hidden shadow-inner">
+            <div className="px-4 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
+              <span>Python Code</span>
+              <span className="text-emerald-400">snippet.py</span>
+            </div>
+            <div className="p-4 text-emerald-300 font-mono text-base font-semibold select-text">
+              {challenge.question}
+            </div>
           </div>
         )}
       </div>
+
 
       {/* Options List */}
       <div className="space-y-2.5">
