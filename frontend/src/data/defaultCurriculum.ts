@@ -1,0 +1,233 @@
+import type { World } from '../types/world';
+
+export const DEFAULT_WORLD_1: World = {
+  id: "python-basics",
+  title: "World 1: The Python Realm",
+  tagline: "Begin your coding quest and master the core foundations",
+  description: "Welcome to the enchanted kingdom of PyQuest! Awaken your magical coding potential as you learn Python syntax, manipulate elemental variables, and conjure interactive spells.",
+  order: 1,
+  themeColor: "#0284c7",
+  levels: [
+    {
+      id: "level-1-print",
+      worldId: "python-basics",
+      order: 1,
+      title: "The Spark of Syntax",
+      description: "Learn what Python is, master statement syntax, and cast your very first print() invocation.",
+      mapX: 150,
+      mapY: 280,
+      xpReward: 50,
+      coinReward: 15,
+      lessons: [
+        {
+          title: "Welcome to Python",
+          content: "Python is a versatile, beginner-friendly programming language celebrated for its clear and readable syntax. In PyQuest, Python code acts like magical incantations—giving instructions directly to your computer.",
+          codeExample: "# A simple incantation\nprint('Greetings, Python Adventurer!')",
+          tip: "Python instructions execute from top to bottom, one statement after another."
+        },
+        {
+          title: "The print() Spell",
+          content: "The `print()` function is one of the most essential spells in your repertoire. It displays messages, data, and computation results to the console output screen.",
+          codeExample: "print('PyQuest: Begin Adventure')\nprint(42)",
+          tip: "Text strings inside print() must be wrapped in matching quotation marks, like 'single' or \"double\" quotes."
+        }
+      ],
+      challenges: [
+        {
+          id: "c1-syntax-quiz",
+          title: "Syntax Trial",
+          type: "multiple-choice",
+          instructions: "Test your grasp of Python syntax by selecting the valid command to display a message on screen.",
+          question: "Which of the following correctly outputs 'Hello Adventurer' in Python?",
+          options: [
+            "echo('Hello Adventurer')",
+            "print(\"Hello Adventurer\")",
+            "Console.WriteLine('Hello Adventurer')",
+            "display.print 'Hello Adventurer'"
+          ],
+          answer: "print(\"Hello Adventurer\")",
+          hints: [
+            "Think of the built-in function we just learned with parentheses.",
+            "It begins with the word 'print'."
+          ],
+          explanation: "In Python, print() is the built-in function used to output text or numbers to the console.",
+          xpReward: 20,
+          coinReward: 5
+        },
+        {
+          id: "c1-hello-code",
+          title: "The First Incantation",
+          type: "write-code",
+          instructions: "Cast your first spell! Write a Python program that prints the exact message: 'Hello Python' to the console output.",
+          starterCode: "# Write your code below to print Hello Python\n",
+          solution: "print('Hello Python')",
+          testCases: [
+            {
+              input: "",
+              expectedOutput: "Hello Python",
+              hidden: false
+            }
+          ],
+          hints: [
+            "Use the print() function.",
+            "Wrap Hello Python in quotation marks inside the parentheses."
+          ],
+          explanation: "Awesome work! print('Hello Python') calls the print function with the string 'Hello Python', transmitting it to the screen.",
+          xpReward: 30,
+          coinReward: 10
+        }
+      ]
+    },
+    {
+      id: "level-2-variables",
+      worldId: "python-basics",
+      order: 2,
+      title: "The Alchemy of Variables",
+      description: "Harness data containers: craft strings, store integers, measure floats, and balance booleans.",
+      mapX: 360,
+      mapY: 210,
+      xpReward: 60,
+      coinReward: 20,
+      lessons: [
+        {
+          title: "Variables: The Magic Jars",
+          content: "A variable is like a labeled jar that stores data for later use. In Python, you create a variable simply by naming it and using the `=` assignment operator.",
+          codeExample: "hero_name = 'Alia'\nhero_level = 5\nprint(hero_name)",
+          tip: "Variable names in Python should use lowercase letters and underscores (snake_case)."
+        },
+        {
+          title: "Core Elemental Data Types",
+          content: "Python has four foundational primitive types:\n• str (String): Text like 'Dragon' or \"Excalibur\"\n• int (Integer): Whole numbers like 10, -3, 100\n• float (Float): Decimal numbers like 99.5, 3.14\n• bool (Boolean): True or False",
+          codeExample: "quest_title = 'The Dragon Quest'\nhealth_points = 100\ncritical_chance = 0.25\nis_alive = True",
+          tip: "Booleans in Python are capitalized: True and False."
+        }
+      ],
+      challenges: [
+        {
+          id: "c2-type-quiz",
+          title: "Identifying Data Elements",
+          type: "multiple-choice",
+          instructions: "Inspect the value 42.0 and determine its data type in Python.",
+          question: "What is the data type of 42.0 in Python?",
+          options: [
+            "int",
+            "float",
+            "str",
+            "bool"
+          ],
+          answer: "float",
+          hints: [
+            "Notice the decimal point .0 attached to the number.",
+            "Numbers with decimal fractions are floating-point numbers."
+          ],
+          explanation: "Because 42.0 contains a decimal point, Python treats it as a float rather than an integer.",
+          xpReward: 20,
+          coinReward: 5
+        },
+        {
+          id: "c2-mana-variable",
+          title: "Assigning Hero Stats",
+          type: "write-code",
+          instructions: "Create a variable named `mana` and set it to `100`. Then, print the value of `mana`.",
+          starterCode: "# Create mana variable and print it\n",
+          solution: "mana = 100\nprint(mana)",
+          testCases: [
+            {
+              input: "",
+              expectedOutput: "100",
+              hidden: false
+            }
+          ],
+          hints: [
+            "Use the assignment operator: mana = 100",
+            "On the next line, call print(mana) without quotation marks."
+          ],
+          explanation: "Great job! Printing a variable name without quotes outputs the value stored within that variable.",
+          xpReward: 40,
+          coinReward: 15
+        }
+      ]
+    },
+    {
+      id: "level-3-input",
+      worldId: "python-basics",
+      order: 3,
+      title: "The Scroll of Interaction",
+      description: "Communicate with users using input(), perform type conversions, and evaluate arithmetic expressions.",
+      mapX: 580,
+      mapY: 290,
+      xpReward: 70,
+      coinReward: 25,
+      lessons: [
+        {
+          title: "Gathering Input from Players",
+          content: "The `input()` function pauses execution and waits for the user to type something. Whatever the user types is always returned as a string (str).",
+          codeExample: "# Reading user text\nuser_name = input()\nprint('Welcome, ' + user_name)",
+          tip: "Because input() always yields a string, you must convert it if you want to perform math!"
+        },
+        {
+          title: "Type Conversion & Math Powers",
+          content: "Convert strings to numbers with `int()` or `float()`. Python also provides elemental operators:\n• + Addition, - Subtraction\n• * Multiplication, / Division\n• ** Exponentiation, % Modulo (Remainder)",
+          codeExample: "base_attack = int('20')\nbuff = 5\ntotal_attack = base_attack + buff\nprint(total_attack)",
+          tip: "Use int(input()) when you need to read whole numbers from the user."
+        }
+      ],
+      challenges: [
+        {
+          id: "c3-predict-quiz",
+          title: "Predict the Alchemy",
+          type: "predict-output",
+          instructions: "Analyze the Python snippet below and predict what will be printed.",
+          question: "What is the output of the following code?\nx = '3'\ny = '4'\nprint(x + y)",
+          options: [
+            "7",
+            "34",
+            "12",
+            "TypeError"
+          ],
+          answer: "34",
+          hints: [
+            "Both '3' and '4' are strings wrapped in quotes.",
+            "The + operator concatenates (joins) two strings together."
+          ],
+          explanation: "When the + operator is used between two strings, Python concatenates them, producing '34'. To get 7, you would convert them to integers with int().",
+          xpReward: 25,
+          coinReward: 8
+        },
+        {
+          id: "c3-square-spell",
+          title: "The Power Calculation",
+          type: "write-code",
+          instructions: "Write a script that reads an integer number from the user using `input()`, calculates its square (multiplied by itself), and prints the result.",
+          starterCode: "# Read integer from input, calculate square, and print it\n",
+          solution: "num = int(input())\nprint(num * num)",
+          testCases: [
+            {
+              input: "5",
+              expectedOutput: "25",
+              hidden: false
+            },
+            {
+              input: "8",
+              expectedOutput: "64",
+              hidden: true
+            },
+            {
+              input: "-3",
+              expectedOutput: "9",
+              hidden: true
+            }
+          ],
+          hints: [
+            "Convert input() to an integer: n = int(input())",
+            "Compute the square: n * n (or n ** 2)",
+            "Print the result with print(...)"
+          ],
+          explanation: "Brilliant! You successfully converted standard input into an integer and calculated its square across test cases!",
+          xpReward: 45,
+          coinReward: 20
+        }
+      ]
+    }
+  ]
+};

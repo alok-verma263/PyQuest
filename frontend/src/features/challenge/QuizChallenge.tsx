@@ -1,0 +1,182 @@
+import React, { useState } from 'react';
+import type { Challenge } from '../../types/world';
+import { Button } from '../../components/common/Button';
+import { CheckCircle, XCircle, HelpCircle, Sparkles } from 'lucide-react';
+
+export interface QuizChallengeProps {
+  challenge: Challenge;
+  onSuccess: () => void;
+  onPlaySound: (sound: 'click' | 'success' | 'error') => void;
+}
+
+export const QuizChallenge: React.FC<QuizChallengeProps> = ({
+  challenge,
+  onSuccess,
+  onPlaySound,
+}) => {
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [submitted, setSubmitted] = useState<boolean>(false);
+  const [revealedHints, setRevealedHints] = useState<number>(0);
+
+  const isCorrect = selectedOption === challenge.answer;
+
+  const handleSelect = (option: string) => {
+    if (submitted) return;
+    onPlaySound('click');
+    setSelectedOption(option);
+  };
+
+  const handleSubmit = () => {
+    if (!selectedOption) return;
+    setSubmitted(true);
+
+    if (isCorrect) {
+      onPlaySound('success');
+      setTimeout(() => {
+        onSuccess();
+      }, 1200);
+    } else {
+      onPlaySound('error');
+    }
+  };
+
+  const handleRetry = () => {
+    onPlaySound('click');
+    setSelectedOption(null);
+    setSubmitted(false);
+  };
+
+  const handleRevealHint = () => {
+    onPlaySound('click');
+    setRevealedHints((prev) => Math.min(challenge.hints.length, prev + 1));
+  };
+
+  return (
+    <div className="w-full max-w-2xl mx-auto bg-slate-900/90 border-2 border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md space-y-6">
+      {/* Challenge Header */}
+      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div>
+          <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400 bg-sky-950/80 px-2.5 py-0.5 rounded-full border border-sky-600/40">
+            {challenge.type === 'predict-output' ? 'Predict The Alchemy' : 'Knowledge Trial'}
+          </span>
+          <h3 className="text-xl font-black text-white mt-1">{challenge.title}</h3>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-bold text-amber-300">
+          <Sparkles size={14} className="text-amber-400" />
+          <span>+{challenge.xpReward} XP</span>
+        </div>
+      </div>
+
+      {/* Instructions & Question */}
+      <div className="space-y-3">
+        <p className="text-xs text-slate-400">{challenge.instructions}</p>
+        {challenge.question && (
+          <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-slate-100 font-mono text-sm leading-relaxed whitespace-pre-wrap select-text">
+            {challenge.question}
+          </div>
+        )}
+      </div>
+
+      {/* Options List */}
+      <div className="space-y-2.5">
+        {challenge.options?.map((option, idx) => {
+          const isSelected = selectedOption === option;
+          let optionStyles = 'bg-slate-950/80 border-slate-800 text-slate-200 hover:border-slate-700';
+
+          if (submitted) {
+            if (option === challenge.answer) {
+              optionStyles = 'bg-emerald-950/50 border-emerald-500 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+            } else if (isSelected && !isCorrect) {
+              optionStyles = 'bg-rose-950/50 border-rose-500 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
+            }
+          } else if (isSelected) {
+            optionStyles = 'bg-sky-950/60 border-sky-400 text-sky-200 shadow-[0_0_15px_rgba(56,189,248,0.25)]';
+          }
+
+          return (
+            <button
+              key={idx}
+              disabled={submitted}
+              onClick={() => handleSelect(option)}
+              className={`w-full p-4 rounded-xl border-2 text-left font-mono text-sm transition-all duration-150 flex items-center justify-between cursor-pointer ${optionStyles}`}
+            >
+              <span>{option}</span>
+              {submitted && option === challenge.answer && (
+                <CheckCircle size={18} className="text-emerald-400 shrink-0" />
+              )}
+              {submitted && isSelected && !isCorrect && (
+                <XCircle size={18} className="text-rose-400 shrink-0" />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Explanation Banner */}
+      {submitted && challenge.explanation && (
+        <div
+          className={`p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed ${
+            isCorrect
+              ? 'bg-emerald-950/30 border-emerald-600/50 text-emerald-200'
+              : 'bg-rose-950/30 border-rose-600/50 text-rose-200'
+          }`}
+        >
+          <span className="font-bold block mb-1">
+            {isCorrect ? '✨ Quest Master Insight:' : '⚠️ Rune Misalignment:'}
+          </span>
+          {challenge.explanation}
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+        <div>
+          {!submitted && challenge.hints && challenge.hints.length > 0 && (
+            <button
+              onClick={handleRevealHint}
+              className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
+            >
+              <HelpCircle size={14} />
+              <span>Hint ({challenge.hints.length - revealedHints} left)</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {submitted && !isCorrect && (
+            <Button variant="secondary" size="md" onClick={handleRetry}>
+              Try Again
+            </Button>
+          )}
+
+          {!submitted && (
+            <Button
+              variant="gold"
+              size="md"
+              glow={Boolean(selectedOption)}
+              disabled={!selectedOption}
+              onClick={handleSubmit}
+            >
+              Lock In Answer
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Hint display */}
+      {revealedHints > 0 && (
+        <div className="space-y-2 pt-2">
+          {challenge.hints.slice(0, revealedHints).map((h, i) => (
+            <div
+              key={i}
+              className="p-3 rounded-xl bg-amber-950/20 border border-amber-600/30 text-amber-200 text-xs"
+            >
+              <span className="font-bold text-amber-400 mr-1.5">Hint {i + 1}:</span>
+              {h}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};

@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg-dark: #090d16;
+    --color-panel: #111827;
+    --color-panel-border: #1f2937;
+    --color-gold: #facc15;
+    --color-gold-hover: #eab308;
+    --color-mana: #38bdf8;
+    --color-mana-glow: rgba(56, 189, 248, 0.25);
+    --color-emerald: #10b981;
+    --color-ruby: #f43f5e;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #080c14;
+    color: #e2e8f0;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    user-select: none;
+  }
+
+  #root {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* Custom Quest Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Glowing RPG Utilities */
+.text-glow-gold {
+  text-shadow: 0 0 12px rgba(250, 204, 21, 0.4);
+}
+
+.text-glow-mana {
+  text-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.box-glow-gold {
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.2);
+}
+
+.box-glow-mana {
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.2);
+}
+
+/* Adventure Map Grid Pattern */
+.bg-adventure-grid {
+  background-image: 
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 24px 24px;
+}
