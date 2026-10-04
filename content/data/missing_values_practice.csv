@@ -1,0 +1,6 @@
+Student_ID,Name,Gender,Age,City,Marks
+1,Aarav,M,20,Delhi,75
+2,Diya,F,,Mumbai,82
+3,Rohan,M,22,,68
+4,Ananya,,21,Bangalore,
+5,Kabir,M,23,Delhi,90

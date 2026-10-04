@@ -13,7 +13,7 @@ class TestCaseSchema(BaseModel):
 class ChallengeSchema(BaseModel):
     id: str
     title: str
-    type: str  # multiple-choice, predict-output, fix-bug, write-code, fill-blank
+    type: str  # multiple-choice, predict-output, fix-bug, write-code, fill-blank, data-cleaning
     instructions: str
     question: Optional[str] = None
     options: Optional[List[str]] = None
@@ -25,6 +25,8 @@ class ChallengeSchema(BaseModel):
     explanation: Optional[str] = None
     xp_reward: int = Field(20, alias="xpReward")
     coin_reward: int = Field(5, alias="coinReward")
+    table_dataset: Optional[str] = Field(None, alias="tableDataset")
+    chart_preview: Optional[Any] = Field(None, alias="chartPreview")
 
     class Config:
         populate_by_name = True
@@ -33,7 +35,10 @@ class LessonSlideSchema(BaseModel):
     title: str
     content: str
     code_example: Optional[str] = Field(None, alias="codeExample")
+    output_example: Optional[str] = Field(None, alias="outputExample")
     tip: Optional[str] = None
+    table_dataset: Optional[str] = Field(None, alias="tableDataset")
+    chart_preview: Optional[Any] = Field(None, alias="chartPreview")
 
     class Config:
         populate_by_name = True
@@ -49,6 +54,7 @@ class LevelSchema(BaseModel):
     xp_reward: int = Field(50, alias="xpReward")
     coin_reward: int = Field(15, alias="coinReward")
     topics: List[str] = Field(default_factory=list)
+    boss: bool = False
     lessons: List[LessonSlideSchema] = Field(default_factory=list)
     challenges: List[ChallengeSchema] = Field(default_factory=list)
 

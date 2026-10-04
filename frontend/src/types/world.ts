@@ -3,12 +3,19 @@ export type ChallengeType =
   | 'fill-blank'
   | 'predict-output'
   | 'fix-bug'
-  | 'write-code';
+  | 'write-code'
+  | 'data-cleaning';
 
 export interface TestCase {
   input: string;
   expectedOutput: string;
   hidden?: boolean;
+}
+
+export interface ChartPreviewConfig {
+  type: 'scatter' | 'histogram' | 'boxplot' | 'boxplot-category';
+  title: string;
+  subtitle?: string;
 }
 
 export interface Challenge {
@@ -26,13 +33,18 @@ export interface Challenge {
   explanation?: string;
   xpReward: number;
   coinReward: number;
+  tableDataset?: string;
+  chartPreview?: ChartPreviewConfig;
 }
 
 export interface LessonSlide {
   title: string;
   content: string;
   codeExample?: string;
+  outputExample?: string;
   tip?: string;
+  tableDataset?: string;
+  chartPreview?: ChartPreviewConfig;
 }
 
 export interface Level {
@@ -46,6 +58,7 @@ export interface Level {
   xpReward: number;
   coinReward: number;
   topics?: string[];
+  boss?: boolean;
   lessons: LessonSlide[];
   challenges: Challenge[];
 }

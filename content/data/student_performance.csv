@@ -1,0 +1,11 @@
+Student_ID,Name,Gender,Age,Course,City,Study_Hours,Attendance,Marks
+101,Aarav,M,20,Data Science,Delhi,5.5,92,78
+102,Diya,F,21,Machine Learning,Mumbai,6.0,88,
+103,Rohan,M,22,Data Science,,4.0,,65
+104,Ananya,F,20,Business Analytics,Bangalore,7.5,95,85
+105,Kabir,M,21,Machine Learning,Delhi,3.0,75,52
+106,Meera,F,23,Business Analytics,Mumbai,8.0,90,92
+107,Arjun,,22,Data Science,Bangalore,5.0,85,70
+108,Ishita,F,20,Machine Learning,,6.5,,
+109,Aditya,M,21,Business Analytics,Delhi,4.5,80,68
+110,Pooja,F,22,Data Science,Mumbai,7.0,94,88
