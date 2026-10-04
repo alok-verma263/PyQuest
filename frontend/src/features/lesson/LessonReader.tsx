@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import type { LessonSlide } from '../../types/world';
 import { Button } from '../../components/common/Button';
 import { BookOpen, Sparkles, Lightbulb, ChevronRight, ChevronLeft, ArrowRight } from 'lucide-react';
+import { DatasetTablePreview } from '../../components/common/DatasetTablePreview';
+import { ChartPreview } from '../../components/common/ChartPreview';
 
 export interface LessonReaderProps {
   slides: LessonSlide[];
@@ -45,7 +47,7 @@ export const LessonReader: React.FC<LessonReaderProps> = ({
           </div>
           <div>
             <span className="text-[11px] font-bold text-sky-400 uppercase tracking-wider">
-              Theory Scroll
+              Lesson {currentSlideIndex + 1} of {slides.length}
             </span>
             <h3 className="text-xl font-black text-white">{slide.title}</h3>
           </div>
@@ -59,6 +61,8 @@ export const LessonReader: React.FC<LessonReaderProps> = ({
               className={`h-2 rounded-full transition-all duration-300 ${
                 idx === currentSlideIndex
                   ? 'w-6 bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.6)]'
+                  : idx < currentSlideIndex
+                  ? 'w-3 bg-sky-600/50'
                   : 'w-2 bg-slate-700'
               }`}
             />
@@ -72,30 +76,45 @@ export const LessonReader: React.FC<LessonReaderProps> = ({
           {slide.content}
         </div>
 
+        {/* Dataset Table Preview if present */}
+        {slide.tableDataset && (
+          <div className="my-2">
+            <DatasetTablePreview datasetId={slide.tableDataset} />
+          </div>
+        )}
+
+        {/* Interactive Chart Preview if present */}
+        {slide.chartPreview && (
+          <div className="my-2">
+            <ChartPreview chart={slide.chartPreview} />
+          </div>
+        )}
+
         {/* Code Example Box with Visual Output Display */}
         {slide.codeExample && (
           <div className="rounded-2xl border border-slate-700 bg-slate-950 overflow-hidden shadow-inner space-y-0">
             <div className="flex items-center justify-between px-4 py-2 bg-slate-900/90 border-b border-slate-800 text-xs text-slate-400">
               <span className="flex items-center gap-1.5 font-mono text-sky-300">
                 <Sparkles size={13} />
-                Python Incantation
+                Python Example
               </span>
-              <span className="font-mono text-[11px]">program.py</span>
+              <span className="font-mono text-[11px]">example.py</span>
             </div>
             <pre className="p-4 text-emerald-400 font-mono text-sm leading-relaxed overflow-x-auto select-text">
               <code>{slide.codeExample}</code>
             </pre>
 
             {/* Visual Output Console Preview */}
-            <div className="px-4 py-2.5 bg-slate-900/60 border-t border-slate-800 flex items-center justify-between text-xs">
-              <span className="text-slate-400 font-bold font-mono">Console Output Screen:</span>
-              <span className="font-mono px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 font-bold border border-emerald-600/30">
-                Hello, Python!
-              </span>
-            </div>
+            {slide.outputExample && (
+              <div className="px-4 py-2.5 bg-slate-900/80 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <span className="text-slate-400 font-bold font-mono">Expected Console Output:</span>
+                <span className="font-mono px-2.5 py-1 rounded bg-emerald-950/80 text-emerald-300 font-bold border border-emerald-600/30 whitespace-pre-wrap">
+                  {slide.outputExample}
+                </span>
+              </div>
+            )}
           </div>
         )}
-
 
         {/* Pro Tip Callout */}
         {slide.tip && (
@@ -128,7 +147,7 @@ export const LessonReader: React.FC<LessonReaderProps> = ({
           icon={isLastSlide ? <ArrowRight size={16} /> : <ChevronRight size={16} />}
           onClick={handleNext}
         >
-          {isLastSlide ? 'Begin Challenge ⚔️' : 'Next Theory'}
+          {isLastSlide ? 'Begin Challenges ⚔️' : 'Next Lesson'}
         </Button>
       </div>
     </div>

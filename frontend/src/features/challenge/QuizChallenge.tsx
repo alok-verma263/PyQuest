@@ -18,7 +18,17 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [revealedHints, setRevealedHints] = useState<number>(0);
 
-  const isCorrect = selectedOption === challenge.answer;
+  const isOptionCorrect = (opt: string) => {
+    if (!challenge.answer) return false;
+    const ans = String(challenge.answer).trim();
+    if (opt === ans) return true;
+    if (opt.startsWith(ans + '.') || opt.startsWith(ans + ' ')) return true;
+    const cleanOpt = opt.replace(/^[A-D]\.\s*/, '').trim();
+    const cleanAns = ans.replace(/^[A-D]\.\s*/, '').trim();
+    return cleanOpt === cleanAns;
+  };
+
+  const isCorrect = selectedOption ? isOptionCorrect(selectedOption) : false;
 
   const handleSelect = (option: string) => {
     if (submitted) return;
@@ -34,7 +44,7 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
       onPlaySound('success');
       setTimeout(() => {
         onSuccess();
-      }, 1200);
+      }, 1000);
     } else {
       onPlaySound('error');
     }
@@ -57,7 +67,7 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
       <div className="flex items-center justify-between border-b border-slate-800 pb-4">
         <div>
           <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400 bg-sky-950/80 px-2.5 py-0.5 rounded-full border border-sky-600/40">
-            {challenge.type === 'predict-output' ? 'Predict The Alchemy' : 'Knowledge Trial'}
+            {challenge.type === 'predict-output' ? 'Predict Output' : 'Multiple-Choice Trial'}
           </span>
           <h3 className="text-xl font-black text-white mt-1">{challenge.title}</h3>
         </div>
@@ -77,7 +87,7 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
           <div className="rounded-2xl bg-slate-950 border border-slate-700/80 overflow-hidden shadow-inner">
             <div className="px-4 py-1.5 bg-slate-900 border-b border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
               <span>Python Code</span>
-              <span className="text-emerald-400">snippet.py</span>
+              <span className="text-emerald-400">code.py</span>
             </div>
             <div className="p-4 text-emerald-300 font-mono text-base font-semibold select-text">
               {challenge.question}
@@ -86,15 +96,15 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
         )}
       </div>
 
-
       {/* Options List */}
       <div className="space-y-2.5">
         {challenge.options?.map((option, idx) => {
           const isSelected = selectedOption === option;
+          const isThisOptionCorrect = isOptionCorrect(option);
           let optionStyles = 'bg-slate-950/80 border-slate-800 text-slate-200 hover:border-slate-700';
 
           if (submitted) {
-            if (option === challenge.answer) {
+            if (isThisOptionCorrect) {
               optionStyles = 'bg-emerald-950/50 border-emerald-500 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
             } else if (isSelected && !isCorrect) {
               optionStyles = 'bg-rose-950/50 border-rose-500 text-rose-200 shadow-[0_0_15px_rgba(244,63,94,0.3)]';
@@ -106,12 +116,12 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
           return (
             <button
               key={idx}
-              disabled={submitted}
+              disabled={submitted && isCorrect}
               onClick={() => handleSelect(option)}
               className={`w-full p-4 rounded-xl border-2 text-left font-mono text-sm transition-all duration-150 flex items-center justify-between cursor-pointer ${optionStyles}`}
             >
               <span>{option}</span>
-              {submitted && option === challenge.answer && (
+              {submitted && isThisOptionCorrect && (
                 <CheckCircle size={18} className="text-emerald-400 shrink-0" />
               )}
               {submitted && isSelected && !isCorrect && (
@@ -123,7 +133,7 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
       </div>
 
       {/* Explanation Banner */}
-      {submitted && challenge.explanation && (
+      {submitted && (
         <div
           className={`p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed ${
             isCorrect
@@ -132,9 +142,11 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
           }`}
         >
           <span className="font-bold block mb-1">
-            {isCorrect ? '✨ Quest Master Insight:' : '⚠️ Rune Misalignment:'}
+            {isCorrect ? '✅ Correct!' : '❌ Not quite.'}
           </span>
-          {challenge.explanation}
+          {isCorrect
+            ? challenge.explanation || 'Great job! You selected the right output.'
+            : 'That answer is incorrect. Review the code example or use a hint, then try again!'}
         </div>
       )}
 
@@ -147,7 +159,7 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
               className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold cursor-pointer"
             >
               <HelpCircle size={14} />
-              <span>Hint ({challenge.hints.length - revealedHints} left)</span>
+              <span>Need a Hint? ({challenge.hints.length - revealedHints} left)</span>
             </button>
           )}
         </div>
@@ -167,7 +179,7 @@ export const QuizChallenge: React.FC<QuizChallengeProps> = ({
               disabled={!selectedOption}
               onClick={handleSubmit}
             >
-              Lock In Answer
+              Check Answer
             </Button>
           )}
         </div>

@@ -27,10 +27,11 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
   const [isRunning, setIsRunning] = useState(false);
   const [output, setOutput] = useState<ExecutionResult | null>(null);
   const [testResults, setTestResults] = useState<{ passed: boolean; expected: string; actual: string }[] | null>(null);
+  const [validationState, setValidationState] = useState<'success' | 'failure' | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string>('');
   const [revealedHints, setRevealedHints] = useState<number>(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
   // Handle Tab key indentation (4 spaces)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Tab') {
@@ -55,6 +56,8 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
     setCode(starterCode);
     setOutput(null);
     setTestResults(null);
+    setValidationState(null);
+    setValidationMessage('');
   };
 
   const handleRunCode = async () => {
@@ -82,9 +85,12 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
   const handleSubmit = async () => {
     onPlaySound('click');
     setIsRunning(true);
+    setValidationState(null);
+    setValidationMessage('');
 
     try {
       let allPassed = true;
+      let failureAdvice = '';
       const results: { passed: boolean; expected: string; actual: string }[] = [];
 
       if (testCases && testCases.length > 0) {
@@ -102,6 +108,15 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
 
           if (!passed) {
             allPassed = false;
+            if (res.error) {
+              failureAdvice = `Python reported a syntax or execution error: ${res.error}`;
+            } else if (!actualOutput) {
+              failureAdvice = "Your code ran, but didn't print any text. Make sure to put the message inside print(...)!";
+            } else if (actualOutput.toLowerCase() === expectedOutput.toLowerCase()) {
+              failureAdvice = `Close! Check capitalization: expected "${expectedOutput}" but got "${actualOutput}".`;
+            } else {
+              failureAdvice = `Expected output "${expectedOutput}", but received "${actualOutput}".`;
+            }
           }
         }
         setTestResults(results);
@@ -110,19 +125,30 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
         const res = await pyodideRunner.runCode(code, '');
         setOutput(res);
         allPassed = !res.error && res.stdout.trim().length > 0;
+        if (!allPassed) {
+          failureAdvice = res.error || "The program didn't produce the expected output.";
+        }
       }
 
       if (allPassed) {
         onPlaySound('success');
+        setValidationState('success');
+        setValidationMessage(explanation || 'Brilliant! You wrote and executed your very first Python program in the browser sandbox!');
         setShowExplanation(true);
         setTimeout(() => {
           onSuccess();
         }, 1200);
       } else {
         onPlaySound('error');
+        setValidationState('failure');
+        setValidationMessage(failureAdvice || 'Check your code and output, then try again!');
+        // Provide a useful hint after a failed attempt
+        setRevealedHints((prev) => Math.min(hints.length, Math.max(1, prev + 1)));
       }
     } catch {
       onPlaySound('error');
+      setValidationState('failure');
+      setValidationMessage('An unexpected execution error occurred.');
     } finally {
       setIsRunning(false);
     }
@@ -250,6 +276,29 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* Validation Status Banner (✅ Correct! or ❌ Not quite.) */}
+      {validationState && (
+        <div
+          className={`p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed flex items-start gap-2.5 transition-all ${
+            validationState === 'success'
+              ? 'bg-emerald-950/40 border-emerald-500/50 text-emerald-200 shadow-[0_0_20px_rgba(16,185,129,0.2)]'
+              : 'bg-rose-950/40 border-rose-500/50 text-rose-200 shadow-[0_0_20px_rgba(244,63,94,0.2)]'
+          }`}
+        >
+          {validationState === 'success' ? (
+            <CheckCircle size={18} className="text-emerald-400 shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle size={18} className="text-rose-400 shrink-0 mt-0.5" />
+          )}
+          <div className="flex-1">
+            <span className="font-extrabold text-sm block mb-0.5">
+              {validationState === 'success' ? '✅ Correct!' : '❌ Not quite.'}
+            </span>
+            <span>{validationMessage}</span>
+          </div>
+        </div>
+      )}
 
       {/* Test Cases Feedback Results (if submitted) */}
       {testResults && (
