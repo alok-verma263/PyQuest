@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import type { World, Level } from '../types/world';
-import type { ProgressState } from '../types/progress';
+import type { ProgressState, LevelStatus } from '../types/progress';
 import type { PlayerProfile } from '../types/profile';
 import { AdventureMapCanvas } from '../game/AdventureMapCanvas';
 import { LevelOverviewModal } from '../features/map/LevelOverviewModal';
 import { WorldHeader } from '../components/common/WorldHeader';
+import { BottomQuestPanel } from '../components/map/BottomQuestPanel';
+import { DATA_CLEANING_LANDMARKS } from '../data/questLandmarks';
 import { Compass, CheckCircle2 } from 'lucide-react';
 
 export interface AdventurePageProps {
@@ -27,6 +29,25 @@ export const AdventurePage: React.FC<AdventurePageProps> = ({
   onPlaySound,
 }) => {
   const [inspectingLevel, setInspectingLevel] = useState<Level | null>(null);
+
+  const getLevelStatus = (levelId: string, order: number): LevelStatus => {
+    if (progress.levelStates && progress.levelStates[levelId]) {
+      return progress.levelStates[levelId].status;
+    }
+    if (order === 1) return 'AVAILABLE';
+    return 'LOCKED';
+  };
+
+  const [userSelectedLevelId, setUserSelectedLevelId] = useState<string | null>(null);
+
+  // Derive active selected level
+  const selectedLevel: Level =
+    (userSelectedLevelId && world.levels.find((l) => l.id === userSelectedLevelId)) ||
+    world.levels.find((l) => {
+      const st = getLevelStatus(l.id, l.order);
+      return st === 'AVAILABLE' || st === 'IN_PROGRESS';
+    }) ||
+    world.levels[0];
 
   const handleOpenOverview = (level: Level) => {
     setInspectingLevel(level);
@@ -103,9 +124,23 @@ export const AdventurePage: React.FC<AdventurePageProps> = ({
         world={world}
         progress={progress}
         profile={profile}
+        selectedLevelId={selectedLevel?.id}
+        onSelectLevel={(lvl) => setUserSelectedLevelId(lvl.id)}
         onOpenLevelOverview={handleOpenOverview}
         onPlaySound={onPlaySound}
       />
+
+      {/* Interactive Bottom Quest Selection & Detail Panel */}
+      {selectedLevel && (
+        <BottomQuestPanel
+          level={selectedLevel}
+          landmarkData={DATA_CLEANING_LANDMARKS[selectedLevel.order]}
+          status={getLevelStatus(selectedLevel.id, selectedLevel.order)}
+          isNextQuest={getLevelStatus(selectedLevel.id, selectedLevel.order) === 'AVAILABLE'}
+          onStartQuest={onStartLevel}
+          onPlaySound={onPlaySound}
+        />
+      )}
 
       {/* World / Level Overview Modal */}
       <LevelOverviewModal

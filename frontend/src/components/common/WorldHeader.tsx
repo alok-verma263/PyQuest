@@ -43,66 +43,78 @@ export const WorldHeader: React.FC<WorldHeaderProps> = ({
       <div className="absolute -bottom-16 -left-16 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        {/* Left: Realm Details */}
-        <div className="space-y-2 max-w-xl">
-          <div className="flex items-center gap-2.5">
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black tracking-wider uppercase bg-sky-950/80 text-sky-300 border border-sky-600/40">
-              <Database size={13} className="text-sky-400" />
-              {isDataCleaning ? 'MODULE 1 • DATA CLEANING' : `WORLD ${world.order}`}
-            </span>
-            <span className="text-xs font-bold text-slate-400 font-mono">
-              {displaySubtitle}
-            </span>
+        {/* Left: Realm Details with Ancient Parchment Scroll */}
+        <div className="flex items-start gap-4 max-w-xl">
+          {/* Parchment Scroll Icon from Blueprint */}
+          <div className="shrink-0 hidden sm:flex flex-col items-center justify-center w-14 h-16 bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 rounded-xl border-2 border-amber-500/70 shadow-[0_0_20px_rgba(245,158,11,0.35)] relative overflow-hidden group">
+            <div className="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-amber-400 via-amber-200 to-amber-400 rounded-t" />
+            <div className="absolute bottom-0 inset-x-0 h-2 bg-gradient-to-r from-amber-400 via-amber-200 to-amber-400 rounded-b" />
+            <span className="text-xl">📜</span>
+            <span className="text-[10px] font-black text-amber-200 font-mono tracking-tight mt-0.5">Py</span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide flex items-center gap-3">
-            <span>{displayTitle}</span>
-            {isMastered && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                <CheckCircle2 size={13} />
-                Mastered
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase bg-sky-950/80 text-sky-300 border border-sky-600/40">
+                <Database size={12} className="text-sky-400" />
+                {isDataCleaning ? 'MODULE 1 • DATA CLEANING' : `WORLD ${world.order}`}
               </span>
-            )}
-          </h1>
+              <span className="text-xs font-bold text-slate-400 font-mono">
+                {displaySubtitle}
+              </span>
+            </div>
 
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
-            "{displayDescription}"
-          </p>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-wide flex items-center gap-3">
+              <span>{displayTitle}</span>
+              {isMastered && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  <CheckCircle2 size={13} />
+                  Mastered
+                </span>
+              )}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-sans">
+              "{displayDescription}"
+            </p>
+          </div>
         </div>
 
-        {/* Right: Module Progress & Reward Preview */}
-        <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-3 bg-slate-900/80 p-4 rounded-2xl border border-sky-900/40 shadow-inner shrink-0 min-w-[220px]">
-          <div className="text-left md:text-right w-full">
-            <div className="flex items-center justify-between md:justify-end gap-3 text-xs">
-              <span className="text-slate-400 font-bold uppercase text-[10px] tracking-wider">
-                Module Progress
+        {/* Right: Module Progress & Rewards Panel matching blueprint */}
+        <div className="flex flex-col sm:flex-row md:flex-col items-stretch md:items-end justify-between gap-3 bg-gradient-to-b from-[#131c31] to-[#0d1527] p-4 rounded-2xl border-2 border-amber-600/40 shadow-[0_0_20px_rgba(0,0,0,0.6)] shrink-0 min-w-[240px]">
+          <div className="w-full">
+            <div className="flex items-center justify-between gap-4 text-xs font-mono font-bold">
+              <span className="text-amber-300 uppercase text-[11px] tracking-wider">
+                {isDataCleaning ? 'MODULE 1 PROGRESS' : `WORLD ${world.order} PROGRESS`}
               </span>
-              <span className="font-mono font-black text-sky-300">
-                {completedCount} / {totalLevels} Quests ({percentComplete}%)
+              <span className="text-slate-300">
+                {completedCount} / {totalLevels} Quests <span className="text-sky-400 font-black">({percentComplete}%)</span>
               </span>
             </div>
 
             {/* Progress bar */}
-            <div className="w-full bg-slate-800 rounded-full h-2 mt-1.5 overflow-hidden border border-slate-700/50">
+            <div className="w-full bg-slate-950 rounded-full h-2.5 mt-2 overflow-hidden border border-slate-700/80 p-0.5">
               <div
-                className="bg-gradient-to-r from-sky-500 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(56,189,248,0.5)]"
+                className="bg-gradient-to-r from-sky-500 via-sky-400 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(56,189,248,0.7)]"
                 style={{ width: `${percentComplete}%` }}
               />
             </div>
           </div>
 
-          {/* Reward Preview */}
-          <div className="flex items-center gap-2.5 pt-1">
-            <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-              Reward:
+          {/* Module Rewards */}
+          <div className="flex items-center justify-between md:justify-end gap-3 pt-1 border-t border-slate-800/80 w-full">
+            <span className="text-[10px] uppercase font-bold text-amber-300 tracking-wider">
+              Module Rewards:
             </span>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-950/80 border border-sky-500/40 text-xs font-black text-sky-300">
-              <Sparkles size={13} className="text-sky-400" />
-              <span>+{isDataCleaning ? 500 : totalXp} XP</span>
-            </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-950/80 border border-amber-500/40 text-xs font-black text-amber-300">
-              <Coins size={13} className="text-amber-400" />
-              <span>+{isDataCleaning ? 150 : totalCoins} Coins</span>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-950/90 border border-sky-400/50 text-xs font-black text-sky-200">
+                <Sparkles size={12} className="text-sky-400" />
+                <span>+{isDataCleaning ? 500 : totalXp} XP</span>
+              </div>
+              <div className="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-amber-950/90 border border-amber-400/50 text-xs font-black text-amber-200">
+                <Coins size={12} className="text-amber-400" />
+                <span>+{isDataCleaning ? 150 : totalCoins} Coins</span>
+              </div>
             </div>
           </div>
         </div>

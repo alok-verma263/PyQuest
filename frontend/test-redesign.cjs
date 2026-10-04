@@ -64,22 +64,31 @@ assert(fs.existsSync(worldHeaderPath), 'WorldHeader.tsx must exist');
 const worldHeaderContent = fs.readFileSync(worldHeaderPath, 'utf8');
 
 assert(worldHeaderContent.includes('DATA CLEANING REALM'), 'Must display DATA CLEANING REALM');
-assert(worldHeaderContent.includes('Module 1 • 7 Quests'), 'Must display Module 1 • 7 Quests');
-assert(worldHeaderContent.includes('Module Progress'), 'Must display Module Progress');
-assert(worldHeaderContent.includes('Reward:'), 'Must display Reward preview');
+assert(worldHeaderContent.includes('MODULE 1'), 'Must display MODULE 1');
+assert(worldHeaderContent.includes('PROGRESS'), 'Must display MODULE 1 PROGRESS');
+assert(worldHeaderContent.includes('Reward'), 'Must display Reward / Module Rewards');
 console.log('✓ PASS: WorldHeader with module progress and reward preview verified');
 
-// 5. Inspect AdventureMapCanvas.tsx
+// 5. Inspect AdventureMapCanvas.tsx & Visual Landmarks
 const mapCanvasPath = path.join(__dirname, 'src', 'game', 'AdventureMapCanvas.tsx');
 assert(fs.existsSync(mapCanvasPath), 'AdventureMapCanvas.tsx must exist');
 const mapCanvasContent = fs.readFileSync(mapCanvasPath, 'utf8');
 
-assert(mapCanvasContent.includes('bg-tech-grid'), 'Map canvas must use bg-tech-grid');
 assert(mapCanvasContent.includes('animate-data-path'), 'Map canvas must use animated data trails');
-assert(mapCanvasContent.includes('.CSV'), 'Map canvas must include .CSV data landmark');
-assert(mapCanvasContent.includes('DATABASE'), 'Map canvas must include DATABASE landmark');
-assert(mapCanvasContent.includes('QUEST'), 'Map canvas must display Quest nodes');
-console.log('✓ PASS: AdventureMapCanvas with data landmarks, trails, and circular nodes verified');
+assert(mapCanvasContent.includes('CSV'), 'Map canvas must include CSV data landmark');
+assert(mapCanvasContent.includes('mountainGrad'), 'Map canvas must render scenic mountain gradients');
+assert(mapCanvasContent.includes('riverGrad'), 'Map canvas must render scenic river streams');
+assert(mapCanvasContent.includes('DATA_CLEANING_LANDMARKS'), 'Map canvas must connect quest landmarks data model');
+console.log('✓ PASS: AdventureMapCanvas with mountains, rivers, landmarks, trails, and circular nodes verified');
+
+// 5b. Inspect BottomQuestPanel.tsx & Components
+const bottomPanelPath = path.join(__dirname, 'src', 'components', 'map', 'BottomQuestPanel.tsx');
+assert(fs.existsSync(bottomPanelPath), 'BottomQuestPanel.tsx must exist');
+const bottomPanelContent = fs.readFileSync(bottomPanelPath, 'utf8');
+assert(bottomPanelContent.includes('You Will Learn'), 'BottomQuestPanel must include You Will Learn checklist');
+assert(bottomPanelContent.includes('Start Quest'), 'BottomQuestPanel must include Start Quest action button');
+assert(bottomPanelContent.includes('TreasureChestGraphic'), 'BottomQuestPanel must include TreasureChestGraphic');
+console.log('✓ PASS: BottomQuestPanel with checklist, rewards, and landmark graphics verified');
 
 // 6. Inspect LessonReader.tsx
 const lessonReaderPath = path.join(__dirname, 'src', 'features', 'lesson', 'LessonReader.tsx');
