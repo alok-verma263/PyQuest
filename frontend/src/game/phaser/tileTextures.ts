@@ -2,41 +2,9 @@
  * PyQuest Top-Down Tile & Sprite Procedural Generator
  * Generates crisp 32x32 pixel-art textures and spritesheets using Canvas API
  * Ensures 100% reliable, zero-asset-download offline rendering with pixel-art aesthetic.
+ * Enhanced with multiple tree variants, terrain variety, rocks, and animated water frames.
  */
 
-export interface TexturePalette {
-  grass: string;
-  grassShade: string;
-  grassHighlight: string;
-  path: string;
-  pathShade: string;
-  stone: string;
-  water: string;
-  waterShade: string;
-  waterLight: string;
-  wood: string;
-  woodDark: string;
-  woodLight: string;
-}
-
-export const DEFAULT_PALETTE: TexturePalette = {
-  grass: '#7ece7e',
-  grassShade: '#64b664',
-  grassHighlight: '#9ce49c',
-  path: '#dfc796',
-  pathShade: '#c9b17f',
-  stone: '#94a3b8',
-  water: '#3b82f6',
-  waterShade: '#1d4ed8',
-  waterLight: '#93c5fd',
-  wood: '#b45309',
-  woodDark: '#78350f',
-  woodLight: '#d97706',
-};
-
-/**
- * Creates an offscreen canvas of given dimensions
- */
 function createCanvas(width: number, height: number): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
   const canvas = document.createElement('canvas');
   canvas.width = width;
@@ -47,12 +15,12 @@ function createCanvas(width: number, height: number): { canvas: HTMLCanvasElemen
 }
 
 /**
- * Generates all 32x32 environment tiles
+ * Generates all environment tiles, buildings, and character textures
  */
 export function generateTileTextures(scene: Phaser.Scene) {
   const tm = scene.textures;
 
-  // 1. TILE_GRASS
+  // 1. TILE_GRASS (standard lush green)
   if (!tm.exists('tile_grass')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#7ece7e';
@@ -72,6 +40,28 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_grass', canvas);
   }
 
+  // 1b. TILE_GRASS_CLOVER (clover & subtle wildflowers)
+  if (!tm.exists('tile_grass_clover')) {
+    const { canvas, ctx } = createCanvas(32, 32);
+    ctx.fillStyle = '#7ece7e';
+    ctx.fillRect(0, 0, 32, 32);
+    // Clover 3-leaf patch
+    ctx.fillStyle = '#15803d';
+    ctx.fillRect(14, 13, 2, 2);
+    ctx.fillRect(12, 14, 2, 2);
+    ctx.fillRect(16, 14, 2, 2);
+    ctx.fillRect(14, 15, 1, 3);
+    // Soft clover highlight
+    ctx.fillStyle = '#86efac';
+    ctx.fillRect(13, 13, 1, 1);
+    ctx.fillRect(16, 13, 1, 1);
+    // Subtle blade
+    ctx.fillStyle = '#64b664';
+    ctx.fillRect(4, 22, 2, 4);
+    ctx.fillRect(24, 6, 2, 3);
+    tm.addCanvas('tile_grass_clover', canvas);
+  }
+
   // 2. TILE_GRASS_DARK (woodland / edge grass)
   if (!tm.exists('tile_grass_dark')) {
     const { canvas, ctx } = createCanvas(32, 32);
@@ -86,7 +76,7 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_grass_dark', canvas);
   }
 
-  // 3. TILE_PATH (sandy dirt trail)
+  // 3. TILE_PATH (sandy dirt trail with organic pebbles)
   if (!tm.exists('tile_path')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#dfc796';
@@ -99,10 +89,14 @@ export function generateTileTextures(scene: Phaser.Scene) {
     ctx.fillStyle = '#f1dfb5';
     ctx.fillRect(12, 8, 2, 2);
     ctx.fillRect(24, 22, 2, 2);
+    // Micro stones
+    ctx.fillStyle = '#a89060';
+    ctx.fillRect(6, 18, 2, 2);
+    ctx.fillRect(22, 10, 2, 2);
     tm.addCanvas('tile_path', canvas);
   }
 
-  // 4. TILE_STONE_PATH (cobblestone)
+  // 4. TILE_STONE_PATH (chiseled cobblestone)
   if (!tm.exists('tile_stone_path')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#64748b'; // Mortar
@@ -115,14 +109,20 @@ export function generateTileTextures(scene: Phaser.Scene) {
     ctx.fillRect(18, 16, 12, 14);
     // Stone highlights
     ctx.fillStyle = '#cbd5e1';
-    ctx.fillRect(3, 3, 10, 3);
-    ctx.fillRect(17, 3, 12, 3);
-    ctx.fillRect(3, 17, 12, 3);
-    ctx.fillRect(19, 17, 10, 3);
+    ctx.fillRect(3, 3, 10, 2);
+    ctx.fillRect(17, 3, 12, 2);
+    ctx.fillRect(3, 17, 12, 2);
+    ctx.fillRect(19, 17, 10, 2);
+    // Shadow bevel
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(2, 12, 12, 2);
+    ctx.fillRect(16, 12, 14, 2);
+    ctx.fillRect(2, 28, 14, 2);
+    ctx.fillRect(18, 28, 12, 2);
     tm.addCanvas('tile_stone_path', canvas);
   }
 
-  // 5. TILE_WATER
+  // 5. TILE_WATER (frame 0)
   if (!tm.exists('tile_water')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#3b82f6';
@@ -138,12 +138,27 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_water', canvas);
   }
 
+  // 5b. TILE_WATER_WAVE (frame 1 for subtle water wave cycle)
+  if (!tm.exists('tile_water_wave')) {
+    const { canvas, ctx } = createCanvas(32, 32);
+    ctx.fillStyle = '#3b82f6';
+    ctx.fillRect(0, 0, 32, 32);
+    // Shifted wave ripples
+    ctx.fillStyle = '#2563eb';
+    ctx.fillRect(0, 12, 32, 4);
+    ctx.fillRect(0, 26, 32, 4);
+    // Wave highlights
+    ctx.fillStyle = '#93c5fd';
+    ctx.fillRect(12, 11, 14, 2);
+    ctx.fillRect(2, 25, 12, 2);
+    tm.addCanvas('tile_water_wave', canvas);
+  }
+
   // 6. TILE_BRIDGE (wooden planks)
   if (!tm.exists('tile_bridge')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#b45309';
     ctx.fillRect(0, 0, 32, 32);
-    // Planks
     for (let y = 0; y < 32; y += 8) {
       ctx.fillStyle = '#78350f'; // Joint line
       ctx.fillRect(0, y, 32, 2);
@@ -175,13 +190,11 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_bridge_rail', canvas);
   }
 
-  // 8. TILE_FENCE (white picket fence matching reference)
+  // 8. TILE_FENCE (white picket fence)
   if (!tm.exists('tile_fence')) {
     const { canvas, ctx } = createCanvas(32, 32);
-    // Transparent background on grass
     ctx.fillStyle = '#7ece7e';
     ctx.fillRect(0, 0, 32, 32);
-    // Two fence posts
     [4, 20].forEach((x) => {
       ctx.fillStyle = '#64748b'; // Shadow
       ctx.fillRect(x + 1, 6, 7, 24);
@@ -195,7 +208,7 @@ export function generateTileTextures(scene: Phaser.Scene) {
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(x + 1, 6, 2, 22);
     });
-    // Horizontal crossbars
+    // Crossbars
     ctx.fillStyle = '#cbd5e1';
     ctx.fillRect(0, 12, 32, 4);
     ctx.fillRect(0, 22, 32, 4);
@@ -205,7 +218,7 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_fence', canvas);
   }
 
-  // 9. TILE_BUSH (spherical lush shrub matching reference)
+  // 9. TILE_BUSH (spherical lush shrub)
   if (!tm.exists('tile_bush')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#7ece7e';
@@ -233,26 +246,21 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_bush', canvas);
   }
 
-  // 10. TILE_FLOWER_RED (matching reference flowers)
+  // 10. TILE_FLOWER_RED
   if (!tm.exists('tile_flower_red')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#7ece7e';
     ctx.fillRect(0, 0, 32, 32);
-    // Two red flowers
     const drawFlower = (cx: number, cy: number) => {
-      // Petals
       ctx.fillStyle = '#dc2626';
       ctx.fillRect(cx - 5, cy - 2, 10, 4);
       ctx.fillRect(cx - 2, cy - 5, 4, 10);
       ctx.fillStyle = '#ef4444';
       ctx.fillRect(cx - 4, cy - 4, 8, 8);
-      // Yellow center
       ctx.fillStyle = '#fde047';
       ctx.fillRect(cx - 1, cy - 1, 3, 3);
-      // Stem / leaves
       ctx.fillStyle = '#15803d';
       ctx.fillRect(cx - 1, cy + 5, 2, 4);
-      ctx.fillRect(cx + 2, cy + 6, 2, 2);
     };
     drawFlower(10, 12);
     drawFlower(22, 20);
@@ -279,20 +287,48 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_flower_yellow', canvas);
   }
 
-  // 12. TILE_TREE (64x64 RPG Pine/Oak Tree)
-  if (!tm.exists('tile_tree')) {
-    const { canvas, ctx } = createCanvas(64, 64);
+  // 12. TILE_ROCK (mossy decorative boulder)
+  if (!tm.exists('tile_rock')) {
+    const { canvas, ctx } = createCanvas(32, 32);
+    ctx.fillStyle = '#7ece7e';
+    ctx.fillRect(0, 0, 32, 32);
+    // Rock shadow
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(16, 22, 11, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Rock body
+    ctx.fillStyle = '#475569';
+    ctx.beginPath();
+    ctx.ellipse(16, 17, 10, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#64748b';
+    ctx.beginPath();
+    ctx.ellipse(15, 15, 8, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Highlight
+    ctx.fillStyle = '#94a3b8';
+    ctx.fillRect(11, 11, 5, 3);
+    // Moss patch
+    ctx.fillStyle = '#16a34a';
+    ctx.fillRect(18, 14, 3, 3);
+    tm.addCanvas('tile_rock', canvas);
+  }
+
+  // 13. TREE VARIANTS (64x64)
+  // 13a. TILE_TREE / TILE_TREE_OAK (Lush Green Oak)
+  const drawOakTree = (ctx: CanvasRenderingContext2D, leafColor: string, hiColor: string) => {
     // Trunk
     ctx.fillStyle = '#78350f';
     ctx.fillRect(26, 38, 12, 22);
     ctx.fillStyle = '#92400e';
     ctx.fillRect(28, 38, 8, 20);
-    // Tree shadow on grass
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.25)';
+    // Ground shadow
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.28)';
     ctx.beginPath();
-    ctx.ellipse(32, 58, 20, 6, 0, 0, Math.PI * 2);
+    ctx.ellipse(32, 58, 22, 6, 0, 0, Math.PI * 2);
     ctx.fill();
-    // Bushy canopy layers
+    // Canopy
     const drawCanopy = (cy: number, r: number, fill: string, hi: string) => {
       ctx.fillStyle = '#14532d';
       ctx.beginPath();
@@ -307,44 +343,94 @@ export function generateTileTextures(scene: Phaser.Scene) {
       ctx.arc(28, cy - 4, r * 0.5, 0, Math.PI * 2);
       ctx.fill();
     };
-    drawCanopy(34, 19, '#15803d', '#22c55e');
-    drawCanopy(22, 16, '#16a34a', '#4ade80');
-    drawCanopy(12, 11, '#22c55e', '#86efac');
+    drawCanopy(34, 19, leafColor, hiColor);
+    drawCanopy(22, 16, leafColor, hiColor);
+    drawCanopy(12, 11, hiColor, '#bbf7d0');
+  };
+
+  if (!tm.exists('tile_tree') || !tm.exists('tile_tree_oak')) {
+    const { canvas, ctx } = createCanvas(64, 64);
+    drawOakTree(ctx, '#16a34a', '#4ade80');
     tm.addCanvas('tile_tree', canvas);
+    tm.addCanvas('tile_tree_oak', canvas);
   }
 
-  // 13. TILE_SIGNPOST
+  // 13b. TILE_TREE_PINE (Tall Evergreen Pine)
+  if (!tm.exists('tile_tree_pine')) {
+    const { canvas, ctx } = createCanvas(64, 64);
+    // Trunk
+    ctx.fillStyle = '#451a03';
+    ctx.fillRect(28, 42, 8, 18);
+    // Ground shadow
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.28)';
+    ctx.beginPath();
+    ctx.ellipse(32, 58, 18, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Pine tiers (triangles)
+    const drawPineTier = (topY: number, botY: number, halfW: number) => {
+      ctx.fillStyle = '#064e3b';
+      ctx.beginPath();
+      ctx.moveTo(32, topY);
+      ctx.lineTo(32 - halfW - 1, botY + 1);
+      ctx.lineTo(32 + halfW + 1, botY + 1);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#047857';
+      ctx.beginPath();
+      ctx.moveTo(32, topY);
+      ctx.lineTo(32 - halfW, botY);
+      ctx.lineTo(32 + halfW, botY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath();
+      ctx.moveTo(32, topY + 2);
+      ctx.lineTo(32 - halfW * 0.4, botY - 2);
+      ctx.lineTo(32 + 2, botY - 2);
+      ctx.closePath();
+      ctx.fill();
+    };
+    drawPineTier(28, 46, 22);
+    drawPineTier(18, 34, 18);
+    drawPineTier(6, 22, 12);
+    tm.addCanvas('tile_tree_pine', canvas);
+  }
+
+  // 13c. TILE_TREE_AUTUMN (Golden Amber Birch)
+  if (!tm.exists('tile_tree_autumn')) {
+    const { canvas, ctx } = createCanvas(64, 64);
+    drawOakTree(ctx, '#d97706', '#facc15');
+    tm.addCanvas('tile_tree_autumn', canvas);
+  }
+
+  // 14. TILE_SIGNPOST
   if (!tm.exists('tile_sign')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#7ece7e';
     ctx.fillRect(0, 0, 32, 32);
-    // Post
     ctx.fillStyle = '#78350f';
     ctx.fillRect(14, 12, 4, 18);
-    // Sign board
     ctx.fillStyle = '#b45309';
     ctx.fillRect(4, 6, 24, 12);
     ctx.fillStyle = '#fde68a';
     ctx.fillRect(6, 8, 20, 8);
-    // Text lines
     ctx.fillStyle = '#78350f';
     ctx.fillRect(8, 10, 16, 1.5);
     ctx.fillRect(8, 13, 12, 1.5);
     tm.addCanvas('tile_sign', canvas);
   }
 
-  // 14. TILE_LAMP (Street lantern)
+  // 15. TILE_LAMP (Street lantern with ambient light)
   if (!tm.exists('tile_lamp')) {
     const { canvas, ctx } = createCanvas(32, 32);
     ctx.fillStyle = '#7ece7e';
     ctx.fillRect(0, 0, 32, 32);
-    // Post
     ctx.fillStyle = '#334155';
     ctx.fillRect(14, 10, 4, 20);
-    // Lantern head
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(11, 4, 10, 8);
-    // Glass glow
     ctx.fillStyle = '#fde047';
     ctx.fillRect(13, 6, 6, 5);
     ctx.fillStyle = '#ffffff';
@@ -352,10 +438,10 @@ export function generateTileTextures(scene: Phaser.Scene) {
     tm.addCanvas('tile_lamp', canvas);
   }
 
-  // 15. QUEST LANDMARK BUILDINGS
+  // 16. QUEST LANDMARK BUILDINGS
   generateBuildingTextures(scene);
 
-  // 16. PLAYER CHARACTER SPRITESHEET
+  // 17. PLAYER SPRITESHEET
   generatePlayerSpritesheet(scene);
 }
 
@@ -369,7 +455,7 @@ function generateBuildingTextures(scene: Phaser.Scene) {
   if (!tm.exists('building_data_village')) {
     const { canvas, ctx } = createCanvas(96, 96);
     // Base shadow
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.35)';
     ctx.fillRect(4, 80, 88, 12);
     // House walls
     ctx.fillStyle = '#f8fafc';
@@ -401,11 +487,11 @@ function generateBuildingTextures(scene: Phaser.Scene) {
     ctx.fillRect(40, 56, 16, 28);
     ctx.fillStyle = '#fef08a';
     ctx.fillRect(52, 70, 2, 3); // Knob
-    // Windows
-    ctx.fillStyle = '#38bdf8';
+    // Windows with warm amber interior glow
+    ctx.fillStyle = '#fde047';
     ctx.fillRect(18, 52, 14, 14);
     ctx.fillRect(64, 52, 14, 14);
-    ctx.fillStyle = '#0f172a';
+    ctx.fillStyle = '#78350f';
     ctx.fillRect(24, 52, 2, 14);
     ctx.fillRect(70, 52, 2, 14);
     // Hanging Sign: "DataFrame Shrine"
@@ -640,13 +726,6 @@ function generateBuildingTextures(scene: Phaser.Scene) {
 
 /**
  * Generates original PyQuest player character spritesheet
- * 32x32 per frame, 3 frames per direction (idle, walk1, walk2), 4 directions = 12 frames!
- * Frame layout: 4 columns x 3 rows or 3 columns x 4 rows
- * 3 columns x 4 rows = 96x128 canvas
- * Row 0: Down
- * Row 1: Left
- * Row 2: Right
- * Row 3: Up
  */
 function generatePlayerSpritesheet(scene: Phaser.Scene) {
   const tm = scene.textures;
@@ -719,7 +798,7 @@ function generatePlayerSpritesheet(scene: Phaser.Scene) {
       ctx.fillRect(cx + 4, cy - 8, 2, 4);
     }
 
-    // Adventurer Red Cap (Signature PyQuest Explorer look)
+    // Adventurer Red Cap
     ctx.fillStyle = '#ef4444';
     ctx.fillRect(cx - 6, cy - 13, 12, 4);
     if (dir === 'down') {
@@ -763,7 +842,7 @@ function generatePlayerSpritesheet(scene: Phaser.Scene) {
   drawCharacter(32, 96, 'up', 1);
   drawCharacter(64, 96, 'up', 2);
 
-  // Add canvas texture and register 12 frames (3 cols x 4 rows)
+  // Register canvas texture and 12 frames
   const playerTexture = tm.addCanvas('player_sheet', canvas);
   if (playerTexture) {
     for (let row = 0; row < 4; row++) {

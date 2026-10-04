@@ -1,7 +1,8 @@
 /**
  * PyQuest World Map Layout & Landmark Coordinates
  * Defines the tilemap layout (42 cols x 80 rows = 1344 x 2560 px),
- * collision boundaries, and interactive quest trigger locations.
+ * collision boundaries, river/bridge, and quest trigger locations.
+ * Optimized with tree variants, clover ground patches, rocks, and consolidated colliders.
  */
 
 export const MAP_COLS = 42;
@@ -13,10 +14,8 @@ export interface LandmarkZone {
   questId: string;
   name: string;
   buildingType: string;
-  // Tile coordinates
   tileX: number;
   tileY: number;
-  // Trigger area in front of the door
   triggerX: number;
   triggerY: number;
   triggerW: number;
@@ -110,42 +109,55 @@ export const QUEST_LANDMARKS_MAP: LandmarkZone[] = [
   },
 ];
 
+export interface WorldMapDataResult {
+  ground: string[][];
+  objects: Array<{ x: number; y: number; texture: string; collides: boolean; isTree?: boolean }>;
+  waterColliders: Array<{ x: number; y: number; w: number; h: number }>;
+  landmarks: LandmarkZone[];
+}
+
+let cachedWorldMap: WorldMapDataResult | null = null;
+
 /**
- * Builds the map matrix for:
- * 1. Ground tiles (grass, path, stone, water, bridge)
- * 2. Static object placements (trees, fences, bushes, flowers, signs)
- * 3. Collisions (boolean grid)
+ * Builds and caches the map matrix:
+ * 1. Ground tiles (grass, clover, path, stone, water, bridge)
+ * 2. Static object placements (varied trees, fences, bushes, flowers, signs, rocks)
+ * 3. Consolidated water colliders (2 large blocks instead of 100+ separate bodies)
  */
-export function buildWorldMap() {
+export function buildWorldMap(): WorldMapDataResult {
+  if (cachedWorldMap) return cachedWorldMap;
+
   const ground: string[][] = Array.from({ length: MAP_ROWS }, () =>
     Array(MAP_COLS).fill('tile_grass')
   );
 
-  const objects: Array<{ x: number; y: number; texture: string; collides: boolean }> = [];
+  const objects: Array<{ x: number; y: number; texture: string; collides: boolean; isTree?: boolean }> = [];
 
-  // Helper to place object
-  const placeObject = (x: number, y: number, texture: string, collides = true) => {
-    objects.push({ x: x * TILE_SIZE, y: y * TILE_SIZE, texture, collides });
+  const placeObject = (x: number, y: number, texture: string, collides = true, isTree = false) => {
+    objects.push({ x: x * TILE_SIZE, y: y * TILE_SIZE, texture, collides, isTree });
   };
 
-  // 1. BOUNDARY PERIMETER (Dense forest of trees along left & right borders)
+  // 1. BOUNDARY PERIMETER (Forest of varied Oak, Pine, and Autumn Trees)
   for (let r = 0; r < MAP_ROWS; r += 2) {
-    placeObject(0, r, 'tile_tree', true);
-    placeObject(2, r, 'tile_tree', true);
-    placeObject(MAP_COLS - 4, r, 'tile_tree', true);
-    placeObject(MAP_COLS - 2, r, 'tile_tree', true);
+    const tree1 = (r / 2) % 3 === 0 ? 'tile_tree_pine' : (r / 2) % 3 === 1 ? 'tile_tree_oak' : 'tile_tree_autumn';
+    const tree2 = (r / 2 + 1) % 3 === 0 ? 'tile_tree_oak' : 'tile_tree_pine';
+    placeObject(0, r, tree1, true, true);
+    placeObject(2, r, tree2, true, true);
+    placeObject(MAP_COLS - 4, r, tree2, true, true);
+    placeObject(MAP_COLS - 2, r, tree1, true, true);
   }
   // Top boundary trees
   for (let c = 0; c < MAP_COLS; c += 2) {
-    placeObject(c, 0, 'tile_tree', true);
-    placeObject(c, 2, 'tile_tree', true);
+    const treeT = (c / 2) % 2 === 0 ? 'tile_tree_pine' : 'tile_tree_oak';
+    placeObject(c, 0, treeT, true, true);
+    placeObject(c, 2, treeT, true, true);
   }
   // Bottom boundary trees
   for (let c = 0; c < MAP_COLS; c += 2) {
-    placeObject(c, MAP_ROWS - 2, 'tile_tree', true);
+    placeObject(c, MAP_ROWS - 2, 'tile_tree_pine', true, true);
   }
 
-  // 2. MAIN NORTH-SOUTH ADVENTURE ROAD (Columns 19..22)
+  // 2. MAIN ADVENTURE TRAIL (Columns 19..22)
   for (let r = 4; r < MAP_ROWS - 4; r++) {
     for (let c = 19; c <= 22; c++) {
       ground[r][c] = 'tile_path';
@@ -160,10 +172,9 @@ export function buildWorldMap() {
     }
   });
 
-  // 4. SCENIC RIVER & WATERFALL (Row 14 to 17)
+  // 4. SCENIC RIVER & WATERFALL (Rows 14 to 16)
   for (let r = 14; r <= 16; r++) {
     for (let c = 3; c < MAP_COLS - 3; c++) {
-      // If within bridge columns, place wooden bridge planks!
       if (c >= 18 && c <= 23) {
         ground[r][c] = 'tile_bridge';
       } else {
@@ -172,26 +183,39 @@ export function buildWorldMap() {
     }
   }
 
-  // Bridge railings (Left rail at c=18, Right rail at c=23)
+  // Bridge railings (Left at c=18, Right at c=23)
   for (let r = 14; r <= 16; r++) {
     placeObject(18, r, 'tile_bridge_rail', true);
     placeObject(23, r, 'tile_bridge_rail', true);
   }
 
-  // 5. WHITE FENCES & BUSHES (around Village at Row 6 to 12)
-  // Left garden fence
+  // Rocks along riverbanks
+  placeObject(6, 13, 'tile_rock', true);
+  placeObject(16, 13, 'tile_rock', true);
+  placeObject(25, 17, 'tile_rock', true);
+  placeObject(34, 13, 'tile_rock', true);
+
+  // 5. CLOVER GROUND PATCHES (Natural terrain variety)
+  for (let r = 5; r < MAP_ROWS - 5; r += 3) {
+    for (let c = 5; c < MAP_COLS - 5; c += 4) {
+      if (ground[r][c] === 'tile_grass' && (r + c) % 5 === 0) {
+        ground[r][c] = 'tile_grass_clover';
+      }
+    }
+  }
+
+  // 6. WHITE FENCES & BUSHES (around Village at Row 6 to 12)
   for (let c = 10; c <= 16; c++) {
     placeObject(c, 7, 'tile_fence', true);
     placeObject(c, 11, 'tile_fence', true);
   }
-  // Left flower garden inside fences
   for (let r = 8; r <= 10; r++) {
     for (let c = 11; c <= 15; c++) {
       placeObject(c, r, (r + c) % 2 === 0 ? 'tile_flower_red' : 'tile_flower_yellow', false);
     }
   }
 
-  // Right garden / bushes (matching reference image)
+  // Village right garden bushes & flowers
   for (let r = 7; r <= 11; r++) {
     placeObject(25, r, 'tile_bush', true);
     placeObject(27, r, 'tile_bush', true);
@@ -200,13 +224,12 @@ export function buildWorldMap() {
     placeObject(29, r, 'tile_flower_red', false);
   }
 
-  // Welcome signpost in village
+  // Village signs & street lamps
   placeObject(18, 9, 'tile_sign', true);
-  // Street lamps
   placeObject(18, 12, 'tile_lamp', true);
   placeObject(23, 12, 'tile_lamp', true);
 
-  // 6. DECORATIONS ALONG ROUTE
+  // 7. DECORATIONS ALONG ROUTE
   // Between River & Import Forge (Rows 18-20)
   placeObject(16, 18, 'tile_bush', true);
   placeObject(25, 18, 'tile_bush', true);
@@ -219,15 +242,16 @@ export function buildWorldMap() {
   placeObject(17, 31, 'tile_lamp', true);
   placeObject(24, 31, 'tile_lamp', true);
 
-  // Around Missing Value Dungeon (Rows 38-41)
-  // Darker grass around dungeon
+  // Around Missing Value Dungeon (Rows 38-44) - darker woodland grass
   for (let r = 38; r <= 44; r++) {
     for (let c = 6; c <= 35; c++) {
-      if (ground[r][c] === 'tile_grass') {
+      if (ground[r][c] === 'tile_grass' || ground[r][c] === 'tile_grass_clover') {
         ground[r][c] = 'tile_grass_dark';
       }
     }
   }
+  placeObject(15, 41, 'tile_rock', true);
+  placeObject(26, 41, 'tile_rock', true);
 
   // Around Visualization Tower (Rows 58-61)
   placeObject(16, 59, 'tile_lamp', true);
@@ -239,9 +263,31 @@ export function buildWorldMap() {
   placeObject(17, 71, 'tile_flower_yellow', false);
   placeObject(24, 71, 'tile_flower_yellow', false);
 
-  return {
+  // 8. CONSOLIDATED WATER COLLIDERS (Left water bank and Right water bank)
+  // River is at rows 14..16 (height 3 tiles = 96px)
+  // Left bank: cols 3..17 (15 tiles = 480px)
+  // Right bank: cols 24..38 (15 tiles = 480px)
+  const waterColliders = [
+    {
+      x: 3 * TILE_SIZE,
+      y: 14 * TILE_SIZE,
+      w: (18 - 3) * TILE_SIZE,
+      h: 3 * TILE_SIZE,
+    },
+    {
+      x: 24 * TILE_SIZE,
+      y: 14 * TILE_SIZE,
+      w: (MAP_COLS - 3 - 24) * TILE_SIZE,
+      h: 3 * TILE_SIZE,
+    },
+  ];
+
+  cachedWorldMap = {
     ground,
     objects,
+    waterColliders,
     landmarks: QUEST_LANDMARKS_MAP,
   };
+
+  return cachedWorldMap;
 }

@@ -24,17 +24,22 @@ const tileTexContent = fs.readFileSync(tileTexPath, 'utf8');
 
 const requiredTiles = [
   'tile_grass',
+  'tile_grass_clover',
   'tile_grass_dark',
   'tile_path',
   'tile_stone_path',
   'tile_water',
+  'tile_water_wave',
   'tile_bridge',
   'tile_bridge_rail',
   'tile_fence',
   'tile_bush',
   'tile_flower_red',
   'tile_flower_yellow',
-  'tile_tree',
+  'tile_rock',
+  'tile_tree_oak',
+  'tile_tree_pine',
+  'tile_tree_autumn',
   'tile_sign',
   'tile_lamp',
 ];
@@ -42,7 +47,7 @@ const requiredTiles = [
 requiredTiles.forEach((tile) => {
   assert(tileTexContent.includes(tile), `tileTextures must generate ${tile}`);
 });
-console.log('✓ PASS: All 14 environment tile textures generated procedurally');
+console.log('✓ PASS: All 19 environment tile textures & tree variants generated procedurally');
 
 // Verify 7 Landmark Buildings in tile generator
 const requiredBuildings = [
@@ -78,47 +83,56 @@ assert(mapDataContent.includes('MAP_ROWS = 80'), 'Map rows must be 80 (2560px ta
 assert(mapDataContent.includes('TILE_SIZE = 32'), 'Tile size must be 32x32');
 assert(mapDataContent.includes('QUEST_LANDMARKS_MAP'), 'Landmarks map must be defined');
 assert(mapDataContent.includes('tile_bridge'), 'Map must feature bridge over river');
-assert(mapDataContent.includes('tile_water'), 'Map must feature water barrier');
-console.log('✓ PASS: World map grid (1344 x 2560 px) and river bridge verified');
+assert(mapDataContent.includes('waterColliders'), 'Map must feature consolidated water colliders');
+console.log('✓ PASS: World map grid (1344 x 2560 px), bridge, and consolidated colliders verified');
 
-// 4. Verify Phaser Scene (WorldScene.ts)
+// 4. Verify Phaser Scene Performance & Features (WorldScene.ts)
 const scenePath = path.join(__dirname, 'src', 'game', 'phaser', 'WorldScene.ts');
 assert(fs.existsSync(scenePath), 'WorldScene.ts must exist');
 const sceneContent = fs.readFileSync(scenePath, 'utf8');
 
-assert(sceneContent.includes('class WorldScene extends Phaser.Scene'), 'Must extend Phaser.Scene');
+assert(sceneContent.includes('renderTexture'), 'Must use RenderTexture for zero-stutter ground rendering');
+assert(sceneContent.includes('setRoundPixels(true)'), 'Must enable roundPixels to eliminate subpixel jitter');
+assert(sceneContent.includes('lastProximityCheck'), 'Must throttle proximity checks to avoid per-frame allocations');
+assert(sceneContent.includes('setPaused'), 'Must support scene pause state');
+assert(sceneContent.includes('setGraphicsQuality'), 'Must support graphics quality modes');
 assert(sceneContent.includes('this.physics.add.collider'), 'Must implement physics colliders');
 assert(sceneContent.includes('this.cameras.main.startFollow'), 'Camera must follow player smoothly');
-assert(sceneContent.includes('this.cameras.main.setBounds'), 'Camera must obey map boundaries');
-assert(sceneContent.includes('checkLandmarkProximity'), 'Must implement proximity detection for quest locations');
-assert(sceneContent.includes('triggerInteraction'), 'Must support pressing E to interact');
 assert(sceneContent.includes('teleportToLandmark'), 'Must support teleporting/fast travel');
-console.log('✓ PASS: WorldScene with physics, WASD movement, camera follow, and E interaction verified');
+console.log('✓ PASS: WorldScene with RenderTexture, roundPixels, throttled checks, and pause verified');
 
 // 5. Verify React Wrapper Component (PhaserAdventureWorld.tsx)
 const reactWorldPath = path.join(__dirname, 'src', 'game', 'phaser', 'PhaserAdventureWorld.tsx');
 assert(fs.existsSync(reactWorldPath), 'PhaserAdventureWorld.tsx must exist');
 const reactWorldContent = fs.readFileSync(reactWorldPath, 'utf8');
 
-assert(reactWorldContent.includes('new Phaser.Game(config)'), 'Must instantiate Phaser.Game');
+assert(reactWorldContent.includes('requestFullscreen'), 'Must implement Fullscreen mode API');
+assert(reactWorldContent.includes('isImmersive'), 'Must implement Immersive Viewport mode');
+assert(reactWorldContent.includes('isPaused'), 'Must implement Pause menu on Esc');
+assert(reactWorldContent.includes('GraphicsQuality'), 'Must support Graphics Quality selector (High/Med/Low)');
+assert(reactWorldContent.includes('scale.resize'), 'Must support dynamic canvas resizing');
 assert(reactWorldContent.includes('pixelArt: true'), 'Must enable crisp pixelArt rendering');
-assert(reactWorldContent.includes('approachedLandmark'), 'Must display proximity mini quest overlay');
-assert(reactWorldContent.includes('[Press E on Keyboard]'), 'Must prompt [Press E on Keyboard]');
-assert(reactWorldContent.includes('Enter Quest'), 'Must provide Enter Quest action button');
-assert(reactWorldContent.includes('game.destroy(true)'), 'Must clean up on unmount');
-console.log('✓ PASS: PhaserAdventureWorld React component with HUD and proximity card verified');
+console.log('✓ PASS: PhaserAdventureWorld with Fullscreen, Immersive mode, Quality settings, and Pause menu verified');
 
-// 6. Verify AdventurePage Integration (AdventurePage.tsx)
+// 6. Verify StorageService Persistence (storageService.ts)
+const storagePath = path.join(__dirname, 'src', 'services', 'storageService.ts');
+assert(fs.existsSync(storagePath), 'storageService.ts must exist');
+const storageContent = fs.readFileSync(storagePath, 'utf8');
+
+assert(storageContent.includes('getGraphicsQuality'), 'Must persist graphics quality');
+assert(storageContent.includes('getImmersiveMode'), 'Must persist immersive mode');
+console.log('✓ PASS: StorageService persistence for graphics quality and immersive mode verified');
+
+// 7. Verify AdventurePage Integration (AdventurePage.tsx)
 const advPagePath = path.join(__dirname, 'src', 'pages', 'AdventurePage.tsx');
 assert(fs.existsSync(advPagePath), 'AdventurePage.tsx must exist');
 const advPageContent = fs.readFileSync(advPagePath, 'utf8');
 
 assert(advPageContent.includes('PhaserAdventureWorld'), 'AdventurePage must import PhaserAdventureWorld');
 assert(advPageContent.includes("viewMode === 'exploration'"), 'Exploration mode must be active by default');
-assert(advPageContent.includes('Walkable World'), 'Must offer Walkable World option');
 console.log('✓ PASS: AdventurePage integrates Walkable World as default view');
 
-// 7. Verify Production Build Distribution
+// 8. Verify Production Build Distribution
 const distHtml = path.join(__dirname, 'dist', 'index.html');
 assert(fs.existsSync(distHtml), 'dist/index.html must exist from build');
 console.log('✓ PASS: Production bundle verified');

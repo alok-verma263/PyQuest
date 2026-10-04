@@ -1,16 +1,17 @@
 import Phaser from 'phaser';
 import { generateTileTextures } from './tileTextures';
-import { buildWorldMap, MAP_COLS, MAP_ROWS, TILE_SIZE, type LandmarkZone } from './worldMapData';
+import { buildWorldMap, MAP_COLS, MAP_ROWS, TILE_SIZE, type LandmarkZone, type WorldMapDataResult } from './worldMapData';
 import type { ProgressState, LevelStatus } from '../../types/progress';
 import type { Level } from '../../types/world';
+import type { GraphicsQuality } from '../../services/storageService';
 
 export interface WorldSceneConfig {
   progress: ProgressState;
   levels: Level[];
+  graphicsQuality?: GraphicsQuality;
   onApproachLandmark?: (landmark: LandmarkZone, level: Level, status: LevelStatus) => void;
   onLeaveLandmark?: () => void;
   onInteractLandmark?: (level: Level) => void;
-  onPlayerMove?: (x: number, y: number) => void;
 }
 
 export class WorldScene extends Phaser.Scene {
@@ -31,6 +32,13 @@ export class WorldScene extends Phaser.Scene {
   private landmarkSprites: Map<number, { building: Phaser.GameObjects.Sprite; statusText: Phaser.GameObjects.Text; aura?: Phaser.GameObjects.Arc }> = new Map();
   private lastFacing: 'down' | 'up' | 'left' | 'right' = 'down';
 
+  // Cached map data & performance throttles
+  private mapData!: WorldMapDataResult;
+  private lastProximityCheck = 0;
+  private isPaused = false;
+  private waterTiles: Phaser.GameObjects.Image[] = [];
+  private waterTimer?: Phaser.Time.TimerEvent;
+
   public configData: WorldSceneConfig;
 
   constructor() {
@@ -44,6 +52,7 @@ export class WorldScene extends Phaser.Scene {
         levelStates: {},
       },
       levels: [],
+      graphicsQuality: 'high',
     };
   }
 
@@ -54,36 +63,72 @@ export class WorldScene extends Phaser.Scene {
   }
 
   preload() {
-    // Generate procedural pixel-art tiles & player spritesheet in memory
+    // Generate all procedural 32x32 tiles, tree variants, and player spritesheet
     generateTileTextures(this);
   }
 
   create() {
-    const { ground, objects, landmarks } = buildWorldMap();
+    // 1. LOAD & CACHE MAP DATA (Computed once, never inside update loop!)
+    this.mapData = buildWorldMap();
+    const { ground, objects, waterColliders, landmarks } = this.mapData;
 
-    // 1. RENDER GROUND TILES
+    const mapWidthPx = MAP_COLS * TILE_SIZE;
+    const mapHeightPx = MAP_ROWS * TILE_SIZE;
+
+    // 2. RENDER GROUND TILES WITH ULTRA-FAST RENDER TEXTURE
+    // Consolidates 3,360 individual GameObjects into 1 single static texture!
+    const groundRT = this.add.renderTexture(0, 0, mapWidthPx, mapHeightPx).setDepth(0);
+
     for (let r = 0; r < MAP_ROWS; r++) {
       for (let c = 0; c < MAP_COLS; c++) {
         const tileKey = ground[r][c];
-        this.add.image(c * TILE_SIZE + 16, r * TILE_SIZE + 16, tileKey).setDepth(0);
-      }
-    }
-
-    // 2. SETUP STATIC OBSTACLES PHYSICS GROUP
-    this.obstaclesGroup = this.physics.add.staticGroup();
-
-    // Water collision (every water tile is solid except bridges)
-    for (let r = 0; r < MAP_ROWS; r++) {
-      for (let c = 0; c < MAP_COLS; c++) {
-        if (ground[r][c] === 'tile_water') {
-          const zone = this.add.zone(c * TILE_SIZE + 16, r * TILE_SIZE + 16, TILE_SIZE, TILE_SIZE);
-          this.physics.add.existing(zone, true);
-          this.obstaclesGroup.add(zone);
+        // Don't bake water into static RT if on HIGH graphics quality so water ripples can animate
+        if (tileKey !== 'tile_water') {
+          groundRT.draw(tileKey, c * TILE_SIZE, r * TILE_SIZE);
         }
       }
     }
 
-    // Objects (Trees, Fences, Bushes, Lamps, Rails)
+    // 3. RENDER WATER WITH OPTIONAL HIGH-QUALITY ANIMATION
+    this.waterTiles = [];
+    const isHighQuality = this.configData.graphicsQuality !== 'low';
+
+    for (let r = 14; r <= 16; r++) {
+      for (let c = 3; c < MAP_COLS - 3; c++) {
+        if (ground[r][c] === 'tile_water') {
+          const waterImg = this.add.image(c * TILE_SIZE + 16, r * TILE_SIZE + 16, 'tile_water').setDepth(0);
+          this.waterTiles.push(waterImg);
+        }
+      }
+    }
+
+    if (isHighQuality && this.waterTiles.length > 0) {
+      // Subtle 1.2s alternating wave ripple cycle
+      let waveToggle = false;
+      this.waterTimer = this.time.addEvent({
+        delay: 1200,
+        loop: true,
+        callback: () => {
+          waveToggle = !waveToggle;
+          const tex = waveToggle ? 'tile_water_wave' : 'tile_water';
+          for (let i = 0; i < this.waterTiles.length; i++) {
+            this.waterTiles[i].setTexture(tex);
+          }
+        },
+      });
+    }
+
+    // 4. SETUP STATIC OBSTACLES PHYSICS GROUP
+    this.obstaclesGroup = this.physics.add.staticGroup();
+
+    // 4a. Consolidated Water Colliders (Just 2 bounding boxes for the whole river!)
+    waterColliders.forEach((wc) => {
+      const zone = this.add.zone(wc.x + wc.w / 2, wc.y + wc.h / 2, wc.w, wc.h);
+      this.physics.add.existing(zone, true);
+      this.obstaclesGroup.add(zone);
+    });
+
+    // 4b. Static Objects (Varied Trees, Fences, Bushes, Rocks, Lamps, Rails)
     objects.forEach((obj) => {
       const sprite = this.add.image(obj.x + 16, obj.y + 16, obj.texture);
       sprite.setDepth(obj.y + 16);
@@ -91,16 +136,20 @@ export class WorldScene extends Phaser.Scene {
       if (obj.collides) {
         this.physics.add.existing(sprite, true);
         const body = sprite.body as Phaser.Physics.Arcade.StaticBody;
-        if (obj.texture === 'tile_tree') {
-          // Tree collision only on trunk (lower half)
-          body.setSize(24, 20);
-          body.setOffset(20, 40);
+
+        if (obj.isTree) {
+          // Precise trunk collision box for smooth walking around canopies
+          body.setSize(20, 16);
+          body.setOffset(22, 42);
         } else if (obj.texture === 'tile_bush') {
-          body.setSize(24, 24);
-          body.setOffset(4, 4);
+          body.setSize(24, 22);
+          body.setOffset(4, 5);
         } else if (obj.texture === 'tile_fence') {
-          body.setSize(32, 16);
-          body.setOffset(0, 10);
+          body.setSize(32, 14);
+          body.setOffset(0, 12);
+        } else if (obj.texture === 'tile_rock') {
+          body.setSize(22, 16);
+          body.setOffset(5, 12);
         } else {
           body.setSize(24, 24);
         }
@@ -108,7 +157,7 @@ export class WorldScene extends Phaser.Scene {
       }
     });
 
-    // 3. RENDER QUEST LANDMARKS
+    // 5. RENDER QUEST LANDMARKS
     landmarks.forEach((lm) => {
       const worldX = lm.tileX * TILE_SIZE + 48; // Center of 96px width
       const worldY = lm.tileY * TILE_SIZE + 48;
@@ -116,11 +165,11 @@ export class WorldScene extends Phaser.Scene {
       const building = this.add.sprite(worldX, worldY, lm.buildingType);
       building.setDepth(worldY + 20);
 
-      // Building Collision Box (solid base)
+      // Building Collision Box (solid base, entrance open)
       this.physics.add.existing(building, true);
       const bBody = building.body as Phaser.Physics.Arcade.StaticBody;
-      bBody.setSize(80, 48);
-      bBody.setOffset(8, 40);
+      bBody.setSize(80, 44);
+      bBody.setOffset(8, 44);
       this.obstaclesGroup.add(building);
 
       // Status text banner
@@ -142,35 +191,33 @@ export class WorldScene extends Phaser.Scene {
       this.landmarkSprites.set(lm.order, { building, statusText, aura });
     });
 
-    // 4. SETUP PLAYER CHARACTER
+    // 6. SETUP PLAYER CHARACTER
     // Spawn at Data Village: tile x=20, y=10
     const spawnX = 20.5 * TILE_SIZE;
     const spawnY = 10 * TILE_SIZE;
 
     this.player = this.physics.add.sprite(spawnX, spawnY, 'player_sheet', 0);
     this.player.setCollideWorldBounds(true);
-    // Depth sorted by feet position
     this.player.setDepth(spawnY + 16);
 
-    // Tight collision box for feet (20w x 14h)
-    this.player.setSize(20, 14);
-    this.player.setOffset(6, 18);
+    // Frictionless feet collision box for zero corner-sticking
+    this.player.setSize(18, 12);
+    this.player.setOffset(7, 19);
 
     // Create Animations
     this.createAnimations();
 
-    // 5. COLLIDERS
+    // 7. COLLIDERS
     this.physics.add.collider(this.player, this.obstaclesGroup);
 
-    // 6. CAMERA SETUP
-    const mapWidthPx = MAP_COLS * TILE_SIZE;
-    const mapHeightPx = MAP_ROWS * TILE_SIZE;
+    // 8. CAMERA SETUP (CRITICAL: roundPixels: true completely eliminates subpixel jitter)
     this.physics.world.setBounds(0, 0, mapWidthPx, mapHeightPx);
     this.cameras.main.setBounds(0, 0, mapWidthPx, mapHeightPx);
-    this.cameras.main.startFollow(this.player, true, 0.1, 0.1);
+    this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+    this.cameras.main.setRoundPixels(true);
     this.cameras.main.setZoom(1.35);
 
-    // 7. INPUT CONTROLS
+    // 9. INPUT CONTROLS
     this.cursors = this.input.keyboard!.createCursorKeys();
     this.keys = {
       W: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.W),
@@ -182,8 +229,8 @@ export class WorldScene extends Phaser.Scene {
       ENTER: this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
     };
 
-    // 8. INTERACTION PROMPT BUBBLE (Follows player or landmark)
-    const bubbleBg = this.add.rectangle(0, 0, 120, 24, 0x0f172a, 0.95);
+    // 10. INTERACTION PROMPT BUBBLE
+    const bubbleBg = this.add.rectangle(0, 0, 124, 24, 0x0f172a, 0.95);
     bubbleBg.setStrokeStyle(1.5, 0xfbbf24);
     const bubbleText = this.add.text(0, 0, '✦ Press E to Enter', {
       fontFamily: 'monospace',
@@ -206,41 +253,39 @@ export class WorldScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    // 9. REFRESH VISUAL PROGRESS STATES
+    // 11. REFRESH VISUAL PROGRESS STATES
     this.refreshLandmarkStates();
   }
 
   private createAnimations() {
     const anims = this.anims;
 
-    // Walk Down (Row 0: 0, 1, 2)
-    anims.create({
-      key: 'walk-down',
-      frames: anims.generateFrameNumbers('player_sheet', { frames: [1, 0, 2, 0] }),
-      frameRate: 8,
-      repeat: -1,
-    });
-    // Walk Left (Row 1: 3, 4, 5)
-    anims.create({
-      key: 'walk-left',
-      frames: anims.generateFrameNumbers('player_sheet', { frames: [4, 3, 5, 3] }),
-      frameRate: 8,
-      repeat: -1,
-    });
-    // Walk Right (Row 2: 6, 7, 8)
-    anims.create({
-      key: 'walk-right',
-      frames: anims.generateFrameNumbers('player_sheet', { frames: [7, 6, 8, 6] }),
-      frameRate: 8,
-      repeat: -1,
-    });
-    // Walk Up (Row 3: 9, 10, 11)
-    anims.create({
-      key: 'walk-up',
-      frames: anims.generateFrameNumbers('player_sheet', { frames: [10, 9, 11, 9] }),
-      frameRate: 8,
-      repeat: -1,
-    });
+    if (!anims.exists('walk-down')) {
+      anims.create({
+        key: 'walk-down',
+        frames: anims.generateFrameNumbers('player_sheet', { frames: [1, 0, 2, 0] }),
+        frameRate: 8,
+        repeat: -1,
+      });
+      anims.create({
+        key: 'walk-left',
+        frames: anims.generateFrameNumbers('player_sheet', { frames: [4, 3, 5, 3] }),
+        frameRate: 8,
+        repeat: -1,
+      });
+      anims.create({
+        key: 'walk-right',
+        frames: anims.generateFrameNumbers('player_sheet', { frames: [7, 6, 8, 6] }),
+        frameRate: 8,
+        repeat: -1,
+      });
+      anims.create({
+        key: 'walk-up',
+        frames: anims.generateFrameNumbers('player_sheet', { frames: [10, 9, 11, 9] }),
+        frameRate: 8,
+        repeat: -1,
+      });
+    }
   }
 
   public getLevelStatus(order: number): LevelStatus {
@@ -255,7 +300,6 @@ export class WorldScene extends Phaser.Scene {
     }
     if (order === 1) return 'AVAILABLE';
 
-    // Unlocked if previous is completed
     const prevLevel = this.configData.levels.find((l) => l.order === order - 1);
     if (prevLevel && this.configData.progress.completedLevels.includes(prevLevel.id)) {
       return 'AVAILABLE';
@@ -302,8 +346,27 @@ export class WorldScene extends Phaser.Scene {
     this.refreshLandmarkStates();
   }
 
-  update() {
-    if (!this.player) return;
+  public setPaused(paused: boolean) {
+    this.isPaused = paused;
+    if (paused && this.player) {
+      this.player.setVelocity(0, 0);
+      this.player.anims.stop();
+    }
+  }
+
+  public setGraphicsQuality(quality: GraphicsQuality) {
+    this.configData.graphicsQuality = quality;
+    if (quality === 'low' && this.waterTimer) {
+      this.waterTimer.remove();
+      this.waterTimer = undefined;
+      for (const wt of this.waterTiles) {
+        wt.setTexture('tile_water');
+      }
+    }
+  }
+
+  update(time: number) {
+    if (!this.player || this.isPaused) return;
 
     // Depth sort player based on y position (feet)
     this.player.setDepth(this.player.y + 14);
@@ -329,10 +392,10 @@ export class WorldScene extends Phaser.Scene {
       this.lastFacing = 'down';
     }
 
-    // Normalize diagonal velocity
+    // Exact diagonal normalization (prevents faster diagonal movement)
     if (vx !== 0 && vy !== 0) {
-      vx *= 0.7071;
-      vy *= 0.7071;
+      vx *= 0.70710678;
+      vy *= 0.70710678;
     }
 
     this.player.setVelocity(vx, vy);
@@ -342,14 +405,18 @@ export class WorldScene extends Phaser.Scene {
       this.player.anims.play(`walk-${this.lastFacing}`, true);
     } else {
       this.player.anims.stop();
-      // Set to idle frame: down=0, left=3, right=6, up=9
       const idleFrame =
         this.lastFacing === 'down' ? 0 : this.lastFacing === 'left' ? 3 : this.lastFacing === 'right' ? 6 : 9;
       this.player.setFrame(idleFrame);
     }
 
-    // Proximity check to Landmark Trigger zones
-    this.checkLandmarkProximity();
+    // Proximity check throttled to every 100ms (CRITICAL: avoids heavy per-frame checks)
+    if (time > this.lastProximityCheck + 100) {
+      this.lastProximityCheck = time;
+      this.checkLandmarkProximity();
+    } else if (this.currentApproachedLandmark && this.interactionBubble.visible) {
+      this.interactionBubble.setPosition(this.player.x, this.player.y - 36);
+    }
 
     // Check interaction key: E, Space, or Enter
     if (
@@ -366,8 +433,10 @@ export class WorldScene extends Phaser.Scene {
     const py = this.player.y;
     let foundLandmark: LandmarkZone | null = null;
 
-    for (const lm of buildWorldMap().landmarks) {
-      // Check if player is near trigger area
+    // Use cached landmarks from mapData (NO RE-ALLOCATION!)
+    const landmarks = this.mapData.landmarks;
+    for (let i = 0; i < landmarks.length; i++) {
+      const lm = landmarks[i];
       const dist = Phaser.Math.Distance.Between(px, py, lm.triggerX + lm.triggerW / 2, lm.triggerY + lm.triggerH / 2);
       if (dist < 64) {
         foundLandmark = lm;
@@ -382,7 +451,6 @@ export class WorldScene extends Phaser.Scene {
         const level = this.configData.levels.find((l) => l.order === foundLandmark!.order);
         const status = this.getLevelStatus(foundLandmark.order);
 
-        // Position bubble above player
         this.interactionBubble.setPosition(this.player.x, this.player.y - 36);
         this.interactionBubble.setVisible(true);
 
@@ -396,7 +464,6 @@ export class WorldScene extends Phaser.Scene {
         }
       }
     } else if (foundLandmark && this.interactionBubble.visible) {
-      // Update bubble position smoothly
       this.interactionBubble.setPosition(this.player.x, this.player.y - 36);
     }
   }
@@ -409,8 +476,7 @@ export class WorldScene extends Phaser.Scene {
 
     const status = this.getLevelStatus(this.currentApproachedLandmark.order);
     if (status === 'LOCKED') {
-      // Camera shake or lock audio feedback
-      this.cameras.main.shake(150, 0.005);
+      this.cameras.main.shake(120, 0.004);
       return;
     }
 
@@ -420,9 +486,10 @@ export class WorldScene extends Phaser.Scene {
   }
 
   public teleportToLandmark(order: number) {
-    const lm = buildWorldMap().landmarks.find((l) => l.order === order);
+    const lm = this.mapData.landmarks.find((l) => l.order === order);
     if (lm && this.player) {
       this.player.setPosition(lm.triggerX + lm.triggerW / 2, lm.triggerY + lm.triggerH / 2);
+      this.cameras.main.centerOn(this.player.x, this.player.y);
     }
   }
 }

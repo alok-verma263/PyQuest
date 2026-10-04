@@ -56,6 +56,8 @@ const DEFAULT_PROGRESS: ProgressState = {
 };
 
 
+export type GraphicsQuality = 'high' | 'medium' | 'low';
+
 export const StorageService = {
   getProfile(): PlayerProfile {
     try {
@@ -91,8 +93,42 @@ export const StorageService = {
     }
   },
 
+  getGraphicsQuality(): GraphicsQuality {
+    try {
+      const q = localStorage.getItem('pyquest_graphics_quality');
+      if (q === 'low' || q === 'medium' || q === 'high') return q as GraphicsQuality;
+    } catch {}
+    return 'high';
+  },
+
+  setGraphicsQuality(quality: GraphicsQuality): void {
+    try {
+      localStorage.setItem('pyquest_graphics_quality', quality);
+    } catch (e) {
+      console.warn('[StorageService] Failed to save graphics quality:', e);
+    }
+  },
+
+  getImmersiveMode(): boolean {
+    try {
+      return localStorage.getItem('pyquest_immersive_mode') === 'true';
+    } catch {
+      return false;
+    }
+  },
+
+  setImmersiveMode(enabled: boolean): void {
+    try {
+      localStorage.setItem('pyquest_immersive_mode', String(enabled));
+    } catch (e) {
+      console.warn('[StorageService] Failed to save immersive mode:', e);
+    }
+  },
+
   resetAll(): void {
     localStorage.removeItem(STORAGE_KEYS.PROGRESS);
     localStorage.removeItem(STORAGE_KEYS.PROFILE);
+    localStorage.removeItem('pyquest_graphics_quality');
+    localStorage.removeItem('pyquest_immersive_mode');
   },
 };
