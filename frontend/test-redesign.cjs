@@ -2,97 +2,105 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-console.log('=== PYQUEST VISUAL REDESIGN VERIFICATION SUITE ===\n');
+console.log('=== PYQUEST DATA CLEANING REALM VISUAL VERIFICATION SUITE ===\n');
 
 // 1. Inspect FixCodeChallenge.tsx
 const fixCodePath = path.join(__dirname, 'src', 'features', 'challenge', 'FixCodeChallenge.tsx');
 assert(fs.existsSync(fixCodePath), 'FixCodeChallenge.tsx must exist');
 const fixCodeContent = fs.readFileSync(fixCodePath, 'utf8');
 
-// Verify Sage / NPC Dialogue
-assert(fixCodeContent.includes('Archmage Pythos'), 'Must feature Archmage Pythos Sage');
-assert(fixCodeContent.includes('Sage of the Data Forge'), 'Must feature Sage of the Data Forge title');
-assert(fixCodeContent.includes('🧙‍♂️'), 'Must feature Sage avatar');
-console.log('✓ PASS: Sage / NPC Dialogue (Archmage Pythos) present');
+// Verify Wizard / Sage character REMOVAL
+assert(!fixCodeContent.includes('Archmage Pythos'), 'Must NOT feature Archmage Pythos');
+assert(!fixCodeContent.includes('Sage of the Data Forge'), 'Must NOT feature Sage of the Data Forge');
+assert(!fixCodeContent.includes('🧙‍♂️'), 'Must NOT feature wizard character emoji');
+console.log('✓ PASS: Wizard / Sage character removed from challenge screen');
 
-// Verify DataArtifactCard integration
-assert(fixCodeContent.includes('DataArtifactCard'), 'Must integrate DataArtifactCard');
-console.log('✓ PASS: DataArtifactCard integrated in FixCodeChallenge');
+// Verify DataPipelineGate integration
+assert(fixCodeContent.includes('DataPipelineGate'), 'Must integrate DataPipelineGate');
+console.log('✓ PASS: DataPipelineGate integrated in FixCodeChallenge');
 
-// Verify Python Spellbook Editor
-assert(fixCodeContent.includes('Python Spell Scroll'), 'Must designate script.py as Python Spell Scroll');
+// Verify Python Code Editor label & functionality
+assert(fixCodeContent.includes('PYTHON CODE EDITOR'), 'Must label editor as PYTHON CODE EDITOR');
 assert(fixCodeContent.includes('renderHighlightedCode'), 'Must contain Python syntax highlighter');
-assert(fixCodeContent.includes('TOKEN_REGEX'), 'Must have token regex for keywords, builtins, strings, brackets');
 assert(fixCodeContent.includes('caret-sky-400'), 'Must feature glowing sky-blue caret');
-assert(fixCodeContent.includes('selection:bg-sky-500/30'), 'Must have styled text selection');
 assert(fixCodeContent.includes('lineNumbers.map'), 'Must render line numbers gutter');
-console.log('✓ PASS: Visual Spellbook editor with syntax highlighting and gutter present');
+console.log('✓ PASS: PYTHON CODE EDITOR with syntax highlighting and line numbers gutter present');
 
 // Verify Game Feedback (Error & Success States)
-assert(fixCodeContent.includes('❌ SPELL FAILED'), 'Must format errors as ❌ SPELL FAILED');
-assert(fixCodeContent.includes('✨ SPELL RESTORED!'), 'Must format success as ✨ SPELL RESTORED!');
-assert(fixCodeContent.includes('Dataset loaded into memory'), 'Must show dataset loaded checklist on success');
-assert(fixCodeContent.includes('Rows detected'), 'Must show rows detected checklist');
-assert(fixCodeContent.includes('Columns detected'), 'Must show columns detected checklist');
-assert(fixCodeContent.includes("View Sage's Hint"), 'Must include quick Hint button on error');
-console.log('✓ PASS: Game-friendly feedback (Spell Failed / Spell Restored) present');
+assert(fixCodeContent.includes('❌ CODE CHECK FAILED'), 'Must format errors as ❌ CODE CHECK FAILED');
+assert(fixCodeContent.includes('✨ DATA IMPORT SUCCESSFUL'), 'Must format success as ✨ DATA IMPORT SUCCESSFUL');
+assert(fixCodeContent.includes('Python code executed'), 'Must show Python code executed checklist item');
+assert(fixCodeContent.includes('10 rows detected'), 'Must show 10 rows detected checklist item');
+assert(fixCodeContent.includes('9 columns detected'), 'Must show 9 columns detected checklist item');
+console.log('✓ PASS: Clean data-focused feedback (Code Check Failed / Data Import Successful) present');
 
-// Verify Action Bar
-assert(fixCodeContent.includes('Reset Spell'), 'Must have Reset Spell button');
-assert(fixCodeContent.includes('Cast Spell & Test Fix ⚡'), 'Must have Cast Spell & Test Fix button');
-console.log('✓ PASS: Action bar with Reset and Cast Spell buttons present');
+// 2. Inspect DataPipelineGate.tsx
+const pipelineGatePath = path.join(__dirname, 'src', 'components', 'common', 'DataPipelineGate.tsx');
+assert(fs.existsSync(pipelineGatePath), 'DataPipelineGate.tsx must exist');
+const pipelineContent = fs.readFileSync(pipelineGatePath, 'utf8');
 
-// 2. Inspect DataArtifactCard.tsx
+assert(pipelineContent.includes('CSV Document'), 'Must include CSV Document step');
+assert(pipelineContent.includes('pd.read_csv()'), 'Must include Python read_csv step');
+assert(pipelineContent.includes('DataFrame'), 'Must include DataFrame step');
+assert(pipelineContent.includes('Import Gate'), 'Must include Glowing Import Gate step');
+console.log('✓ PASS: DataPipelineGate [CSV] -> [Python] -> [DataFrame] -> [Gate] verified');
+
+// 3. Inspect DataArtifactCard.tsx
 const artifactCardPath = path.join(__dirname, 'src', 'components', 'common', 'DataArtifactCard.tsx');
 assert(fs.existsSync(artifactCardPath), 'DataArtifactCard.tsx must exist');
 const artifactContent = fs.readFileSync(artifactCardPath, 'utf8');
 
-assert(artifactContent.includes('Collectible Data Artifact'), 'Must feature Collectible Data Artifact badge');
+assert(artifactContent.includes('Data Artifact'), 'Must feature Data Artifact badge');
 assert(artifactContent.includes('ROWS'), 'Must display ROWS stat');
 assert(artifactContent.includes('COLUMNS'), 'Must display COLUMNS stat');
-assert(artifactContent.includes('MISSING VALUES'), 'Must display MISSING VALUES warning stat');
-assert(artifactContent.includes('table'), 'Must display compact table preview');
+assert(artifactContent.includes('MISSING VALUES'), 'Must display MISSING VALUES stat');
 assert(artifactContent.includes('NaN'), 'Must highlight missing cells with NaN badge');
-console.log('✓ PASS: Collectible Data Artifact card with stat pills and NaN table preview present');
+assert(!artifactContent.includes('🧙‍♂️') && !artifactContent.includes('Runes'), 'Must not contain wizard references');
+console.log('✓ PASS: DataArtifactCard with observations, variables, and missing values verified');
 
-// 3. Inspect QuestContainer.tsx
+// 4. Inspect WorldHeader.tsx
+const worldHeaderPath = path.join(__dirname, 'src', 'components', 'common', 'WorldHeader.tsx');
+assert(fs.existsSync(worldHeaderPath), 'WorldHeader.tsx must exist');
+const worldHeaderContent = fs.readFileSync(worldHeaderPath, 'utf8');
+
+assert(worldHeaderContent.includes('DATA CLEANING REALM'), 'Must display DATA CLEANING REALM');
+assert(worldHeaderContent.includes('Module 1 • 7 Quests'), 'Must display Module 1 • 7 Quests');
+assert(worldHeaderContent.includes('Module Progress'), 'Must display Module Progress');
+assert(worldHeaderContent.includes('Reward:'), 'Must display Reward preview');
+console.log('✓ PASS: WorldHeader with module progress and reward preview verified');
+
+// 5. Inspect AdventureMapCanvas.tsx
+const mapCanvasPath = path.join(__dirname, 'src', 'game', 'AdventureMapCanvas.tsx');
+assert(fs.existsSync(mapCanvasPath), 'AdventureMapCanvas.tsx must exist');
+const mapCanvasContent = fs.readFileSync(mapCanvasPath, 'utf8');
+
+assert(mapCanvasContent.includes('bg-tech-grid'), 'Map canvas must use bg-tech-grid');
+assert(mapCanvasContent.includes('animate-data-path'), 'Map canvas must use animated data trails');
+assert(mapCanvasContent.includes('.CSV'), 'Map canvas must include .CSV data landmark');
+assert(mapCanvasContent.includes('DATABASE'), 'Map canvas must include DATABASE landmark');
+assert(mapCanvasContent.includes('QUEST'), 'Map canvas must display Quest nodes');
+console.log('✓ PASS: AdventureMapCanvas with data landmarks, trails, and circular nodes verified');
+
+// 6. Inspect LessonReader.tsx
+const lessonReaderPath = path.join(__dirname, 'src', 'features', 'lesson', 'LessonReader.tsx');
+assert(fs.existsSync(lessonReaderPath), 'LessonReader.tsx must exist');
+const lessonReaderContent = fs.readFileSync(lessonReaderPath, 'utf8');
+
+assert(lessonReaderContent.includes('Quest Curriculum'), 'Must include curriculum step tracker');
+assert(lessonReaderContent.includes('Data Tip:'), 'Must label tips as Data Tip');
+assert(lessonReaderContent.includes('Console Output:'), 'Must preview console output');
+console.log('✓ PASS: LessonReader with 3-column layout and data tips verified');
+
+// 7. Inspect QuestContainer.tsx Modals
 const questContainerPath = path.join(__dirname, 'src', 'features', 'challenge', 'QuestContainer.tsx');
 assert(fs.existsSync(questContainerPath), 'QuestContainer.tsx must exist');
 const questContainerContent = fs.readFileSync(questContainerPath, 'utf8');
 
-assert(questContainerContent.includes("currentChallenge.type !== 'fix-bug'"), 'QuestContainer must not render duplicate prompt header for fix-bug');
-assert(questContainerContent.includes('xpReward'), 'Top quest bar must display XP reward');
-assert(questContainerContent.includes('coinReward'), 'Top quest bar must display Coin reward');
-console.log('✓ PASS: QuestContainer seamless integration and rewards display verified');
-
-// 4. Inspect index.css for animations
-const cssPath = path.join(__dirname, 'src', 'index.css');
-const cssContent = fs.readFileSync(cssPath, 'utf8');
-assert(cssContent.includes('animate-spell-shake'), 'Must include spell shake animation');
-assert(cssContent.includes('animate-spell-glow'), 'Must include spell glow animation');
-assert(cssContent.includes('animate-reward-pop'), 'Must include reward pop animation');
-console.log('✓ PASS: Keyframe animations (shake, glow, reward pop) present in index.css');
-
-// 5. Test Python Syntax Tokenizer directly
-const rawTestCode = 'import pandas as pd\n\ndf = pd.read_csv("student_performance.csv")';
-const TOKEN_REGEX =
-  /(#[^\n]*)|("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|(\b(?:import|from|as|def|class|return|if|elif|else|while|for|in|try|except|with|pass|break|continue|lambda|and|or|not|is|None|True|False)\b)|(\b(?:print|read_csv|read_excel|fillna|dropna|replace|isnull|isna|sum|mean|median|mode|shape|head|tail|info|describe|open|range|len)\b)|(\b(?:pd|np|plt|sns|df)\b)|(\b\d+(?:\.\d+)?\b)|([()[\]{}:])/g;
-
-const matchedTokens = [];
-let m;
-while ((m = TOKEN_REGEX.exec(rawTestCode)) !== null) {
-  matchedTokens.push(m[0]);
-}
-
-assert(matchedTokens.includes('import'), 'Tokenizer must match import keyword');
-assert(matchedTokens.includes('as'), 'Tokenizer must match as keyword');
-assert(matchedTokens.includes('pd'), 'Tokenizer must match pd module');
-assert(matchedTokens.includes('read_csv'), 'Tokenizer must match read_csv method');
-assert(matchedTokens.includes('"student_performance.csv"'), 'Tokenizer must match string literal');
-assert(matchedTokens.includes('('), 'Tokenizer must match opening parenthesis');
-assert(matchedTokens.includes(')'), 'Tokenizer must match closing parenthesis');
-console.log('✓ PASS: Syntax tokenizer matches all Python keywords, modules, methods, strings, and parentheses correctly');
+assert(questContainerContent.includes('QUEST TRIAL CLEARED'), 'Must feature clean QUEST TRIAL CLEARED modal');
+assert(questContainerContent.includes('CSV Document'), 'Victory modal must include CSV -> Python -> DataFrame visual');
+assert(questContainerContent.includes('Next Quest Unlocked:'), 'Victory modal must show Next Quest Unlocked');
+console.log('✓ PASS: QuestContainer reward and completion modals verified');
 
 console.log('\n==================================================');
-console.log('ALL VISUAL REDESIGN CHECKS PASSED (100%)! ✨');
+console.log('ALL DATA CLEANING REALM VISUAL CHECKS PASSED (100%)! 🚀');
 console.log('==================================================');

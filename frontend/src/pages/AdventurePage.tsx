@@ -4,6 +4,7 @@ import type { ProgressState } from '../types/progress';
 import type { PlayerProfile } from '../types/profile';
 import { AdventureMapCanvas } from '../game/AdventureMapCanvas';
 import { LevelOverviewModal } from '../features/map/LevelOverviewModal';
+import { WorldHeader } from '../components/common/WorldHeader';
 import { Compass, CheckCircle2 } from 'lucide-react';
 
 export interface AdventurePageProps {
@@ -61,13 +62,13 @@ export const AdventurePage: React.FC<AdventurePageProps> = ({
                     onPlaySound('click');
                     if (onSelectWorld) onSelectWorld(w);
                   }}
-                  className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                  className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-[0_0_15px_rgba(56,189,248,0.4)] border border-sky-400/50 scale-[1.02]'
                       : 'bg-slate-950/70 text-slate-300 hover:bg-slate-800/80 hover:text-white border border-slate-800'
                   }`}
                 >
-                  <span>{w.order === 1 ? '🔮' : '📊'}</span>
+                  <span>{w.order === 1 ? '⚡' : '📊'}</span>
                   <span>{w.title}</span>
                   <span
                     className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
@@ -94,6 +95,10 @@ export const AdventurePage: React.FC<AdventurePageProps> = ({
         </div>
       )}
 
+      {/* World / Realm Header Card */}
+      <WorldHeader world={world} progress={progress} />
+
+      {/* Adventure Map Canvas */}
       <AdventureMapCanvas
         world={world}
         progress={progress}

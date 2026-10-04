@@ -101,3 +101,26 @@
   animation: reward-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+/* Data & Coding Tech Patterns */
+.bg-tech-grid {
+  background-image: 
+    linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+@keyframes data-dash {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+.animate-data-path {
+  animation: data-dash 1.6s linear infinite;
+}
+
+.glow-cyan-card {
+  box-shadow: 0 8px 32px rgba(2, 132, 199, 0.12), inset 0 0 20px rgba(56, 189, 248, 0.04);
+}
+
+

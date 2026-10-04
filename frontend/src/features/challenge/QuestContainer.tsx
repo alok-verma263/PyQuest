@@ -233,13 +233,13 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
 
           <div>
             <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
-              Trial {(completedChallengeReward?.index ?? 0) + 1} Conquered!
+              QUEST TRIAL CLEARED
             </span>
             <h3 className="text-2xl font-black text-white mt-1">
               {completedChallengeReward?.title}
             </h3>
             <p className="text-xs text-slate-300 mt-1">
-              Reward claimed! Your wizard mastery grows stronger.
+              Trial completed successfully! Progress saved.
             </p>
           </div>
 
@@ -249,7 +249,7 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
               <Sparkles size={20} className="text-sky-400" />
               <div className="text-left">
                 <span className="text-[10px] text-slate-400 font-bold block uppercase">Earned</span>
-                <span className="text-base font-black text-sky-300">
+                <span className="text-base font-black text-sky-300 font-mono">
                   +{completedChallengeReward?.xp} XP
                 </span>
               </div>
@@ -259,8 +259,8 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
               <Coins size={20} className="text-amber-400" />
               <div className="text-left">
                 <span className="text-[10px] text-slate-400 font-bold block uppercase">Earned</span>
-                <span className="text-base font-black text-amber-300">
-                  +{completedChallengeReward?.coins} Coins
+                <span className="text-base font-black text-amber-300 font-mono">
+                  +{completedChallengeReward?.coins} COINS
                 </span>
               </div>
             </div>
@@ -273,9 +273,9 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
               glow
               icon={<ArrowRight size={18} />}
               onClick={handleAdvanceToNextChallenge}
-              className="w-full sm:w-auto px-8"
+              className="w-full sm:w-auto px-8 font-extrabold"
             >
-              Continue to Next Trial ⚔️
+              Continue to Next Trial
             </Button>
           </div>
         </div>
@@ -296,15 +296,24 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
           </div>
 
           <div>
-            <span className="text-xs font-black uppercase tracking-widest text-amber-400 bg-amber-950/60 px-3 py-1 rounded-full border border-amber-600/40">
-              LEVEL COMPLETE!
+            <span className="text-xs font-black uppercase tracking-widest text-amber-400 bg-amber-950/60 px-3 py-1 rounded-full border border-amber-600/40 font-mono">
+              QUEST CONQUERED
             </span>
             <h3 className="text-2xl sm:text-3xl font-black text-white mt-2">
-              {level.title} Cleared!
+              {level.title.toUpperCase()} COMPLETE
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-sm mx-auto leading-relaxed">
-              You conquered all trials of Your First Python Program! Level 2 is now unlocked on the Adventure Map.
+              All trials cleared! Your data mastery and Python skills have expanded.
             </p>
+          </div>
+
+          {/* Environmental Visual: CSV Document → Python → DataFrame */}
+          <div className="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-900/90 border border-sky-800/40 text-xs font-mono max-w-sm mx-auto shadow-inner">
+            <span className="text-sky-300 font-bold">CSV Document</span>
+            <span className="text-slate-500">→</span>
+            <span className="text-sky-400 font-bold">Python</span>
+            <span className="text-slate-500">→</span>
+            <span className="text-purple-300 font-bold">DataFrame</span>
           </div>
 
           {/* Level Complete Reward Badges */}
@@ -313,7 +322,7 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
               <Sparkles size={20} className="text-sky-400" />
               <div className="text-left">
                 <span className="text-[10px] text-slate-400 font-bold block uppercase">Quest Reward</span>
-                <span className="text-lg font-black text-sky-300">+{level.xpReward} XP</span>
+                <span className="text-lg font-black text-sky-300 font-mono">+{level.xpReward} XP</span>
               </div>
             </div>
 
@@ -321,35 +330,55 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
               <Coins size={20} className="text-amber-400" />
               <div className="text-left">
                 <span className="text-[10px] text-slate-400 font-bold block uppercase">Quest Reward</span>
-                <span className="text-lg font-black text-amber-300">+{level.coinReward} Coins</span>
+                <span className="text-lg font-black text-amber-300 font-mono">+{level.coinReward} Coins</span>
               </div>
             </div>
           </div>
 
-          {/* Quest Master Accomplishments */}
+          {/* Skills Mastered from level topics */}
           <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 text-left max-w-sm mx-auto space-y-1.5 text-xs text-slate-300">
             <div className="font-bold text-slate-400 uppercase text-[10px] tracking-wider mb-1">
-              Skills Mastered:
+              Skills Verified:
             </div>
-            <div className="flex items-center gap-2 text-emerald-300">
-              <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-              <span>What Python is & Why it is Useful</span>
-            </div>
-            <div className="flex items-center gap-2 text-emerald-300">
-              <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-              <span>The print() Function & Output Display</span>
-            </div>
-            <div className="flex items-center gap-2 text-emerald-300">
-              <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-              <span>Syntax Error Identification & Repair</span>
-            </div>
-            <div className="flex items-center gap-2 text-emerald-300">
-              <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-              <span>Executed First Python Code in Sandbox</span>
-            </div>
+            {(level.topics && level.topics.length > 0
+              ? level.topics
+              : [
+                  'CSV File Structure & Ingestion',
+                  'Pandas DataFrame Architecture',
+                  'Data Types & Syntax Inspection',
+                  'Code Verification & Execution',
+                ]
+            ).map((t, idx) => (
+              <div key={idx} className="flex items-center gap-2 text-emerald-300">
+                <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                <span>{t}</span>
+              </div>
+            ))}
           </div>
 
-          <div className="pt-4 border-t border-slate-800 flex items-center justify-center">
+          {/* Next Quest Unlocked Card */}
+          <div className="p-3 rounded-xl bg-sky-950/40 border border-sky-600/30 max-w-sm mx-auto text-center">
+            <span className="text-[10px] uppercase font-bold text-sky-400 block tracking-wider">
+              Next Quest Unlocked:
+            </span>
+            <span className="text-sm font-black text-white mt-0.5 block">
+              {level.order === 1
+                ? 'DATA IMPORT FORGE'
+                : level.order === 2
+                ? 'DATA EXPORT WORKSHOP'
+                : level.order === 3
+                ? 'MISSING VALUE DUNGEON'
+                : level.order === 4
+                ? 'CATEGORY FORGE'
+                : level.order === 5
+                ? 'VISUALIZATION TOWER'
+                : level.order === 6
+                ? 'THE CLEAN DATA TRIAL'
+                : 'REALM MASTERED 🏆'}
+            </span>
+          </div>
+
+          <div className="pt-2 border-t border-slate-800 flex items-center justify-center">
             <Button
               variant="gold"
               size="lg"
@@ -359,7 +388,7 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
                 setShowLevelCompleteModal(false);
                 onBackToMap();
               }}
-              className="w-full sm:w-auto px-8"
+              className="w-full sm:w-auto px-8 font-extrabold"
             >
               Return to Adventure Map 🗺️
             </Button>

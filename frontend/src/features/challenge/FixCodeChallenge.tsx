@@ -3,6 +3,7 @@ import type { Challenge } from '../../types/world';
 import { Button } from '../../components/common/Button';
 import { pyodideRunner } from '../../services/pyodideRunner';
 import { DataArtifactCard } from '../../components/common/DataArtifactCard';
+import { DataPipelineGate } from '../../components/common/DataPipelineGate';
 import {
   Wrench,
   Play,
@@ -14,7 +15,7 @@ import {
   Zap,
   Coins,
   ArrowLeft,
-  Scroll,
+  Terminal,
 } from 'lucide-react';
 
 export interface FixCodeChallengeProps {
@@ -27,18 +28,18 @@ export interface FixCodeChallengeProps {
   onBackToMap?: () => void;
 }
 
-interface SpellFeedback {
+interface CodeCheckFeedback {
   status: 'success' | 'error';
   title: string;
   message: string;
-  subChecks?: string[];
+  checklist?: string[];
 }
 
 export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
   challenge,
   onSuccess,
   onPlaySound,
-  questTitle,
+  questTitle = 'DATA IMPORT FORGE',
   trialNumber,
   totalTrials,
   onBackToMap,
@@ -47,7 +48,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
   const [code, setCode] = useState<string>(starterCode);
   const [isTesting, setIsTesting] = useState<boolean>(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [spellFeedback, setSpellFeedback] = useState<SpellFeedback | null>(null);
+  const [feedback, setFeedback] = useState<CodeCheckFeedback | null>(null);
   const [revealedHints, setRevealedHints] = useState<number>(0);
   const [cursorPos, setCursorPos] = useState<{ line: number; col: number }>({ line: 1, col: 1 });
 
@@ -83,7 +84,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
     onPlaySound('click');
     setCode(starterCode);
     setStatus('idle');
-    setSpellFeedback(null);
+    setFeedback(null);
     if (textareaRef.current) {
       textareaRef.current.focus();
     }
@@ -100,20 +101,17 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
     if (!textarea) return;
 
     if (e.key === 'Enter') {
-      // Prevent accidental form submission
       e.preventDefault();
 
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
 
-      // Determine indentation of the current line
       const lineStart = code.lastIndexOf('\n', start - 1) + 1;
       const currentLine = code.substring(lineStart, start);
 
       const indentMatch = currentLine.match(/^[ \t]*/);
       let indent = indentMatch ? indentMatch[0] : '';
 
-      // If line ends with colon (:), add 4 spaces indentation
       if (currentLine.trimEnd().endsWith(':')) {
         indent += '    ';
       }
@@ -124,10 +122,9 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
 
       if (status !== 'idle') {
         setStatus('idle');
-        setSpellFeedback(null);
+        setFeedback(null);
       }
 
-      // Update cursor position after state update
       const newCursor = start + insertion.length;
       requestAnimationFrame(() => {
         if (textareaRef.current) {
@@ -179,7 +176,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
 
       if (status !== 'idle') {
         setStatus('idle');
-        setSpellFeedback(null);
+        setFeedback(null);
       }
     }
   };
@@ -188,7 +185,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
     onPlaySound('click');
     setIsTesting(true);
     setStatus('idle');
-    setSpellFeedback(null);
+    setFeedback(null);
 
     try {
       const res = await pyodideRunner.runCode(code, '');
@@ -204,31 +201,45 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
         setStatus('error');
 
         if (challenge.id === 'c2-fix-import-syntax' && openParenCount > closeParenCount) {
-          setSpellFeedback({
+          setFeedback({
             status: 'error',
-            title: '❌ SPELL FAILED',
-            message:
-              "The dataset was not loaded. Check the closing parenthesis in pd.read_csv(). In Python, every opening '(' requires a matching closing ')'.",
+            title: '❌ CODE CHECK FAILED',
+            message: 'The dataset was not loaded successfully.',
+            checklist: [
+              'Check closing parenthesis in pd.read_csv()',
+              'Check dataset filename "student_performance.csv"',
+              'Verify matching open and close brackets',
+            ],
           });
         } else if (openParenCount > closeParenCount) {
-          setSpellFeedback({
+          setFeedback({
             status: 'error',
-            title: '❌ SPELL FAILED',
-            message:
-              "Unclosed parenthesis rune detected! In Python, every opening '(' must have a matching closing ')'.",
+            title: '❌ CODE CHECK FAILED',
+            message: 'Syntax check failed: Unclosed parenthesis detected.',
+            checklist: [
+              "Every opening '(' requires a matching closing ')'",
+              'Check method invocation syntax',
+            ],
           });
         } else if (challenge.id === 'c4-fix-median-fillna' && !code.includes('.median()')) {
-          setSpellFeedback({
+          setFeedback({
             status: 'error',
-            title: '❌ SPELL FAILED',
-            message:
-              "The median calculation failed! In Python, '.median' is a method and must be called with parentheses: '.median()'.",
+            title: '❌ CODE CHECK FAILED',
+            message: 'The median calculation could not be computed.',
+            checklist: [
+              'In Python, .median is a method',
+              'Must be invoked with parentheses: .median()',
+            ],
           });
         } else {
-          setSpellFeedback({
+          setFeedback({
             status: 'error',
-            title: '❌ SPELL FAILED',
-            message: `Syntax incantation failed: ${res.error || 'Check your closing brackets and syntax symbols.'}`,
+            title: '❌ CODE CHECK FAILED',
+            message: 'The code execution encountered a syntax error.',
+            checklist: [
+              res.error || 'SyntaxError: invalid syntax',
+              'Review line endings and closing punctuation',
+            ],
           });
         }
         return;
@@ -272,11 +283,14 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
       if (!isCorrect) {
         onPlaySound('error');
         setStatus('error');
-        setSpellFeedback({
+        setFeedback({
           status: 'error',
-          title: '❌ SPELL FAILED',
-          message:
-            "The code ran without crashing, but the syntax bug is not fully repaired yet. Check the instructions or consult the Sage's hint!",
+          title: '❌ CODE CHECK FAILED',
+          message: 'The dataset was not loaded successfully.',
+          checklist: [
+            'Verify exact syntax requirements',
+            'Check function arguments and return types',
+          ],
         });
       } else {
         // Success!
@@ -286,35 +300,41 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
         const isImportChallenge =
           challenge.id === 'c2-fix-import-syntax' || code.includes('read_csv');
 
-        setSpellFeedback({
+        setFeedback({
           status: 'success',
-          title: '✨ SPELL RESTORED!',
+          title: isImportChallenge ? '✨ DATA IMPORT SUCCESSFUL' : '✨ CODE CHECK PASSED',
           message:
             challenge.explanation ||
-            'You repaired the Python syntax rune and awakened the data incantation!',
-          subChecks: isImportChallenge
-            ? ['Dataset loaded into memory', 'Rows detected (10 records)', 'Columns detected (9 features)']
-            : ['Syntax verified', 'Incantation executed', 'Output confirmed'],
+            'Python statement executed successfully and output verified.',
+          checklist: isImportChallenge
+            ? [
+                'Python code executed',
+                'Dataset loaded',
+                '10 rows detected',
+                '9 columns detected',
+              ]
+            : ['Python code executed', 'Syntax verified', 'Expected output confirmed'],
         });
 
         setTimeout(() => {
           onSuccess();
-        }, 1400);
+        }, 1300);
       }
     } catch {
       onPlaySound('error');
       setStatus('error');
-      setSpellFeedback({
+      setFeedback({
         status: 'error',
-        title: '❌ SPELL FAILED',
-        message: 'An unexpected disturbance disrupted execution. Please check your syntax runes.',
+        title: '❌ CODE CHECK FAILED',
+        message: 'The dataset was not loaded successfully. Unexpected execution error occurred.',
+        checklist: ['Check statement syntax', 'Review import and read_csv() parameters'],
       });
     } finally {
       setIsTesting(false);
     }
   };
 
-  // Python Syntax Tokenizer for Spellbook
+  // Python Syntax Tokenizer
   const renderHighlightedCode = (rawCode: string) => {
     const codeLines = rawCode.split('\n');
     return codeLines.map((line, lIdx) => {
@@ -399,97 +419,65 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
     });
   };
 
-  // Sage / NPC Dialogue Context
-  const getSageLore = () => {
-    if (challenge.id === 'c2-fix-import-syntax') {
-      return 'Hail, Apprentice! The ancient records of Student Performance must be summoned into the DataFrame crystal using pd.read_csv(). But the summoning rune has fractured—the closing parenthesis is missing! Repair the spell to awaken the dataset.';
-    }
-    if (challenge.id === 'c4-fix-median-fillna') {
-      return "Apprentice! In Python, .median is a method that must be invoked with parentheses (). Without them, the imputation enchantment will falter. Repair the method call to banish the missing values!";
-    }
-    if (challenge.id === 'c2-fix-the-spell') {
-      return "Welcome, initiate! The print() spell requires a closing parenthesis to seal the incantation. Close the rune to cast your first spell.";
-    }
-    return challenge.instructions;
-  };
-
   return (
-    <div className="w-full max-w-5xl mx-auto space-y-5 animate-in fade-in duration-300">
-      {/* 1. QUEST HEADER (Optional standalone or sync with QuestContainer) */}
-      {(onBackToMap || questTitle) && (
-        <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-3 shadow-lg backdrop-blur-md">
-          <div className="flex items-center gap-3">
-            {onBackToMap && (
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<ArrowLeft size={16} />}
-                onClick={onBackToMap}
-              >
-                Return to Map
-              </Button>
-            )}
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-sky-400">
-                {questTitle ? `Quest: ${questTitle}` : 'PyQuest Adventure'}
-              </span>
-              <h2 className="text-sm sm:text-base font-extrabold text-white">
-                {challenge.title}
-              </h2>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {trialNumber && totalTrials && (
-              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                Trial {trialNumber}/{totalTrials}
-              </span>
-            )}
-            <div className="flex items-center gap-1.5 text-xs font-bold text-sky-400 bg-sky-950/60 px-2.5 py-1 rounded-lg border border-sky-600/30">
-              <Sparkles size={13} />
-              <span>+{challenge.xpReward} XP</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-600/30">
-              <Coins size={13} />
-              <span>+{challenge.coinReward} Coins</span>
-            </div>
+    <div className="w-full max-w-5xl mx-auto space-y-4 animate-in fade-in duration-300">
+      {/* 1. CHALLENGE TOP BAR (Standalone or Quest sync) */}
+      <div className="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl px-5 py-3 shadow-lg backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          {onBackToMap && (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<ArrowLeft size={16} />}
+              onClick={onBackToMap}
+            >
+              Back to Map
+            </Button>
+          )}
+          <div>
+            <span className="text-[10px] uppercase font-bold tracking-widest text-sky-400">
+              {questTitle}
+            </span>
+            <h2 className="text-sm sm:text-base font-extrabold text-white">
+              {challenge.title}
+            </h2>
           </div>
         </div>
-      )}
+
+        <div className="flex items-center gap-3">
+          {trialNumber && totalTrials && (
+            <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono">
+              TRIAL {trialNumber} / {totalTrials}
+            </span>
+          )}
+          <div className="flex items-center gap-1.5 text-xs font-bold text-sky-400 bg-sky-950/70 px-2.5 py-1 rounded-lg border border-sky-600/30">
+            <Sparkles size={13} />
+            <span>+{challenge.xpReward} XP</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 bg-amber-950/70 px-2.5 py-1 rounded-lg border border-amber-600/30">
+            <Coins size={13} />
+            <span>+{challenge.coinReward} Coins</span>
+          </div>
+        </div>
+      </div>
 
       {/* 2-COLUMN RESPONSIVE LAYOUT (Desktop: 5 cols / 7 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* LEFT COLUMN: Quest Intro & Data Artifact */}
+        {/* LEFT COLUMN: Data Pipeline Gate & Dataset Artifact */}
         <div className="lg:col-span-5 space-y-4">
-          {/* 2. QUEST INTRO (NPC / Sage Dialogue) */}
-          <div className="p-4 sm:p-5 rounded-2xl border-2 border-sky-600/40 bg-gradient-to-br from-slate-900/95 via-sky-950/30 to-slate-900/95 shadow-xl backdrop-blur-md relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
+          {/* Data Import Pipeline Gate */}
+          <DataPipelineGate
+            questTitle={questTitle}
+            introMessage="Learn how to bring real-world data into Python."
+            sourceFile={
+              challenge.tableDataset === 'sales_data'
+                ? 'sales_data.csv'
+                : 'student_performance.csv'
+            }
+            targetStructure="Pandas DataFrame"
+          />
 
-            <div className="flex items-start gap-3.5">
-              {/* Sage Avatar */}
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 p-0.5 shadow-[0_0_15px_rgba(56,189,248,0.4)] shrink-0">
-                <div className="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-2xl">
-                  🧙‍♂️
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-sky-300">
-                    Archmage Pythos
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-medium">
-                    Sage of the Data Forge
-                  </span>
-                </div>
-                <p className="text-xs sm:text-[13px] text-slate-300 leading-relaxed font-sans">
-                  "{getSageLore()}"
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. DATA ARTIFACT CARD */}
+          {/* Dataset Artifact Card */}
           <DataArtifactCard
             datasetId={challenge.tableDataset || 'student_performance'}
             title="STUDENT PERFORMANCE"
@@ -497,17 +485,17 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
           />
         </div>
 
-        {/* RIGHT COLUMN: Challenge Card, Spellbook Editor, Actions, Results, Hints */}
+        {/* RIGHT COLUMN: Objective, Code Editor, Actions, Feedback, Hints */}
         <div className="lg:col-span-7 space-y-4">
-          {/* 4. CHALLENGE OBJECTIVE CARD */}
+          {/* Challenge Objective Card */}
           <div className="p-4 sm:p-5 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-xl backdrop-blur-md space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-amber-950/80 text-amber-400 border border-amber-600/40">
+                <div className="p-1.5 rounded-lg bg-sky-950/80 text-sky-400 border border-sky-600/40">
                   <Wrench size={15} />
                 </div>
-                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                  Syntax Repair Mission
+                <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
+                  Code Repair Objective
                 </span>
               </div>
               <span className="text-xs font-mono text-slate-400">Target: script.py</span>
@@ -517,19 +505,19 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
               {challenge.instructions}
             </h3>
             <p className="text-xs text-slate-400">
-              Move your cursor into the Spellbook editor below. Identify the broken syntax character and repair it.
+              Fix the broken Python statement so the dataset can be loaded successfully.
             </p>
           </div>
 
-          {/* 5. VISUAL EDITOR: THE "PYTHON SPELLBOOK" */}
-          <div className="rounded-2xl border-2 border-sky-500/40 focus-within:border-sky-400 focus-within:shadow-[0_0_25px_rgba(56,189,248,0.25)] bg-[#090d16] overflow-hidden shadow-[inset_0_0_20px_rgba(56,189,248,0.08),_0_8px_32px_rgba(0,0,0,0.6)] transition-all">
-            {/* Spellbook Header / Scroll Bar */}
-            <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-slate-900 via-sky-950/60 to-slate-900 border-b border-sky-800/40 text-xs">
+          {/* PYTHON CODE EDITOR */}
+          <div className="rounded-2xl border-2 border-sky-500/40 focus-within:border-sky-400 focus-within:shadow-[0_0_25px_rgba(56,189,248,0.25)] bg-[#070d19] overflow-hidden shadow-[inset_0_0_20px_rgba(56,189,248,0.08),_0_8px_32px_rgba(0,0,0,0.6)] glow-cyan-card transition-all">
+            {/* Editor Header Bar */}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-gradient-to-r from-slate-900 via-sky-950/70 to-slate-900 border-b border-sky-800/40 text-xs">
               <div className="flex items-center gap-2">
-                <Scroll size={14} className="text-sky-400" />
-                <span className="font-mono font-bold text-sky-200">script.py</span>
+                <Terminal size={14} className="text-sky-400" />
+                <span className="font-mono font-bold text-sky-200">PYTHON CODE EDITOR</span>
                 <span className="text-[10px] text-slate-400 font-mono hidden sm:inline">
-                  — Python Spell Scroll
+                  — script.py
                 </span>
               </div>
 
@@ -537,15 +525,15 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
                 <span className="text-[10px] font-mono text-slate-400">
                   Ln {cursorPos.line}, Col {cursorPos.col}
                 </span>
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-sky-300 bg-sky-950/70 px-2 py-0.5 rounded border border-sky-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
                   <span>Python 3.11</span>
                 </div>
               </div>
             </div>
 
-            {/* Spellbook Body: Gutter + Overlay Syntax Editor */}
-            <div className="flex bg-[#090d16] min-h-[140px] font-mono text-sm leading-6">
+            {/* Editor Body: Line Numbers Gutter + Syntax Highlighted Textarea */}
+            <div className="flex bg-[#070d19] min-h-[140px] font-mono text-sm leading-6">
               {/* Line Numbers Gutter */}
               <div className="py-3 px-3 select-none text-right text-slate-600 bg-slate-950/90 border-r border-sky-950/80 font-mono text-xs leading-6 space-y-0">
                 {lineNumbers.map((num) => {
@@ -565,7 +553,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
                 })}
               </div>
 
-              {/* Editor Code Area: Relative container with Pre syntax highlight behind Textarea */}
+              {/* Editor Code Area */}
               <div className="relative flex-1 overflow-hidden min-h-[140px]">
                 {/* Syntax Highlighted Background Layer */}
                 <pre
@@ -584,7 +572,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
                     setCode(e.target.value);
                     if (status !== 'idle') {
                       setStatus('idle');
-                      setSpellFeedback(null);
+                      setFeedback(null);
                     }
                   }}
                   onKeyDown={handleKeyDown}
@@ -597,13 +585,13 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
                   autoComplete="off"
                   rows={Math.max(4, lineCount)}
                   className="relative w-full h-full p-3 m-0 bg-transparent text-transparent caret-sky-400 font-mono text-sm leading-6 outline-none resize-none whitespace-pre overflow-auto select-text selection:bg-sky-500/30 selection:text-white"
-                  placeholder="# Enter Python incantation here..."
+                  placeholder="# Enter Python code here..."
                 />
               </div>
             </div>
           </div>
 
-          {/* 6. ACTION BAR */}
+          {/* ACTION BAR */}
           <div className="flex items-center justify-between pt-1">
             <Button
               variant="ghost"
@@ -613,7 +601,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
               disabled={isTesting || code === starterCode}
               className="text-slate-400 hover:text-white"
             >
-              Reset Spell
+              Reset Code
             </Button>
 
             <Button
@@ -631,15 +619,15 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
               onClick={handleTestFix}
               className="font-extrabold px-6"
             >
-              {isTesting ? 'Channeling Spell...' : 'Cast Spell & Test Fix ⚡'}
+              {isTesting ? 'Executing Code...' : 'Run Code & Test Fix ⚡'}
             </Button>
           </div>
 
-          {/* 7. RESULT CARD: GAME FEEDBACK (Success / Error State) */}
-          {spellFeedback && (
+          {/* RESULT CARD: GAME FEEDBACK (Success / Error State) */}
+          {feedback && (
             <div
               className={`p-4 sm:p-5 rounded-2xl border-2 transition-all space-y-2.5 ${
-                spellFeedback.status === 'success'
+                feedback.status === 'success'
                   ? 'bg-gradient-to-br from-emerald-950/70 via-slate-900 to-emerald-950/70 border-emerald-500/60 shadow-[0_0_25px_rgba(16,185,129,0.25)] animate-reward-pop'
                   : 'bg-gradient-to-br from-rose-950/70 via-slate-900 to-rose-950/70 border-rose-500/60 shadow-[0_0_20px_rgba(244,63,94,0.2)] animate-spell-shake'
               }`}
@@ -648,23 +636,23 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`p-1.5 rounded-xl ${
-                      spellFeedback.status === 'success'
+                      feedback.status === 'success'
                         ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
                         : 'bg-rose-500/20 text-rose-400 border border-rose-500/40'
                     }`}
                   >
-                    {spellFeedback.status === 'success' ? (
+                    {feedback.status === 'success' ? (
                       <CheckCircle size={20} />
                     ) : (
                       <AlertTriangle size={20} />
                     )}
                   </div>
                   <h4 className="text-base font-black text-white tracking-wide">
-                    {spellFeedback.title}
+                    {feedback.title}
                   </h4>
                 </div>
 
-                {spellFeedback.status === 'success' && (
+                {feedback.status === 'success' && (
                   <div className="flex items-center gap-2 text-xs font-black">
                     <span className="text-sky-300 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-500/40">
                       +{challenge.xpReward} XP
@@ -677,47 +665,70 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
               </div>
 
               <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-sans">
-                {spellFeedback.message}
+                {feedback.message}
               </p>
 
-              {/* Success Checklist */}
-              {spellFeedback.subChecks && spellFeedback.subChecks.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                  {spellFeedback.subChecks.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-300 bg-emerald-950/50 border border-emerald-500/30 px-2.5 py-1.5 rounded-lg"
-                    >
-                      <CheckCircle size={13} className="text-emerald-400 shrink-0" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
+              {/* Checklist */}
+              {feedback.checklist && feedback.checklist.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  {feedback.status === 'error' && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-rose-300 block">
+                      Check:
+                    </span>
+                  )}
+                  <div
+                    className={`grid gap-1.5 ${
+                      feedback.status === 'success'
+                        ? 'grid-cols-1 sm:grid-cols-2'
+                        : 'grid-cols-1'
+                    }`}
+                  >
+                    {feedback.checklist.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className={`flex items-center gap-2 text-xs font-semibold px-2.5 py-1.5 rounded-lg ${
+                          feedback.status === 'success'
+                            ? 'bg-emerald-950/50 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-rose-950/40 text-rose-200 border border-rose-800/30'
+                        }`}
+                      >
+                        {feedback.status === 'success' ? (
+                          <span className="text-emerald-400 font-bold">✓</span>
+                        ) : (
+                          <span className="text-rose-400 font-bold">•</span>
+                        )}
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Error Guidance: Quick Hint Button */}
-              {spellFeedback.status === 'error' && challenge.hints && challenge.hints.length > 0 && (
+              {/* Error Guidance: Hint Button */}
+              {feedback.status === 'error' && challenge.hints && challenge.hints.length > 0 && (
                 <div className="pt-2 border-t border-rose-900/40 flex items-center justify-between">
-                  <span className="text-[11px] text-rose-300/80">Need guidance on the missing rune?</span>
+                  <span className="text-[11px] text-rose-300/80">
+                    Need technical guidance on this challenge?
+                  </span>
                   <button
                     onClick={handleRevealHint}
                     className="inline-flex items-center gap-1.5 text-xs text-amber-300 hover:text-amber-200 font-bold px-3 py-1 rounded-lg bg-amber-950/60 border border-amber-600/40 transition-colors cursor-pointer"
                   >
                     <HelpCircle size={13} />
-                    <span>View Sage's Hint</span>
+                    <span>View Hint</span>
                   </button>
                 </div>
               )}
             </div>
           )}
 
-          {/* 8. HINT CARD */}
+          {/* HINT CARD */}
           <div className="pt-1">
             {challenge.hints && challenge.hints.length > 0 && (
               <div className="flex items-center justify-between">
                 <button
                   onClick={handleRevealHint}
-                  className="inline-flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold cursor-pointer transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors"
                 >
                   <HelpCircle size={14} />
                   <span>
@@ -727,17 +738,17 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
               </div>
             )}
 
-            {/* Revealed Hints in ancient gold parchment cards */}
+            {/* Revealed Hints */}
             {revealedHints > 0 && (
               <div className="space-y-2 pt-3">
                 {challenge.hints.slice(0, revealedHints).map((h, i) => (
                   <div
                     key={i}
-                    className="p-3.5 rounded-xl bg-gradient-to-r from-amber-950/30 via-slate-900/60 to-amber-950/30 border border-amber-500/40 text-amber-200 text-xs shadow-md animate-in fade-in duration-200"
+                    className="p-3.5 rounded-xl bg-gradient-to-r from-sky-950/40 via-slate-900/80 to-sky-950/40 border border-sky-500/40 text-sky-200 text-xs shadow-md animate-in fade-in duration-200"
                   >
-                    <div className="flex items-center gap-1.5 font-bold text-amber-300 mb-1">
-                      <Sparkles size={13} className="text-amber-400" />
-                      <span>Sage's Hint {i + 1}:</span>
+                    <div className="flex items-center gap-1.5 font-bold text-sky-300 mb-1">
+                      <Sparkles size={13} className="text-sky-400" />
+                      <span>Technical Hint {i + 1}:</span>
                     </div>
                     <p className="text-slate-300">{h}</p>
                   </div>
