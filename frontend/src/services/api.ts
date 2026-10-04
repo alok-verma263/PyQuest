@@ -1,7 +1,7 @@
 import type { World, Level } from '../types/world';
 import type { ProgressState } from '../types/progress';
 import type { PlayerProfile } from '../types/profile';
-import { DEFAULT_WORLD_1 } from '../data/defaultCurriculum';
+import { DEFAULT_WORLD_1, ALL_DEFAULT_WORLDS } from '../data/defaultCurriculum';
 import { StorageService } from './storageService';
 
 const BASE_URL = '/api';
@@ -28,7 +28,7 @@ export const ApiService = {
       return await res.json();
     } catch {
       // Fallback to offline bundled curriculum
-      return [DEFAULT_WORLD_1];
+      return ALL_DEFAULT_WORLDS;
     }
   },
 
@@ -38,7 +38,7 @@ export const ApiService = {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
-      return DEFAULT_WORLD_1;
+      return ALL_DEFAULT_WORLDS.find((w) => w.id === worldId) || DEFAULT_WORLD_1;
     }
   },
 
@@ -48,7 +48,8 @@ export const ApiService = {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } catch {
-      return DEFAULT_WORLD_1.levels.find((l) => l.id === levelId);
+      const world = ALL_DEFAULT_WORLDS.find((w) => w.id === worldId) || DEFAULT_WORLD_1;
+      return world.levels.find((l) => l.id === levelId);
     }
   },
 
@@ -57,6 +58,11 @@ export const ApiService = {
       const res = await fetch(`${BASE_URL}/progress/${userId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      const local = StorageService.getProgress();
+      if (local && local.completedLevels && local.completedLevels.length > data.completedLevels.length) {
+        ApiService.saveProgress(local);
+        return local;
+      }
       StorageService.saveProgress(data);
       return data;
     } catch {
@@ -86,6 +92,11 @@ export const ApiService = {
       const res = await fetch(`${BASE_URL}/profile/${userId}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      const local = StorageService.getProfile();
+      if (local && local.xp > data.xp) {
+        ApiService.saveProfile(local);
+        return local;
+      }
       StorageService.saveProfile(data);
       return data;
     } catch {
