@@ -1,0 +1,829 @@
+{
+  "id": "data-cleaning",
+  "title": "DATA CLEANING REALM",
+  "tagline": "Master the journey from raw data to a clean and understandable dataset",
+  "description": "Embark on the foundational MBA Machine Learning journey. Venture into the Import Forge, brave the Missing Value Dungeon, harness the Category Forge, scale the Visualization Tower, and conquer the Clean Data Trial.",
+  "order": 2,
+  "themeColor": "#0ea5e9",
+  "levels": [
+    {
+      "id": "quest-1-meet-the-data",
+      "worldId": "data-cleaning",
+      "order": 1,
+      "title": "Meet the Data",
+      "description": "Understand tabular datasets, explore DataFrame architecture, and master delimiters.",
+      "topics": [
+        "Reading Data",
+        "DataFrames: Rows & Columns",
+        "Delimiters & CSVs",
+        "Data Dimensions & Inspection"
+      ],
+      "mapX": 80,
+      "mapY": 340,
+      "xpReward": 60,
+      "coinReward": 15,
+      "lessons": [
+        {
+          "title": "Tabular Datasets & DataFrames",
+          "content": "In data science and business analytics, data is primarily organized in tabular format.\n\n• Rows represent individual records or observations (e.g., individual student performance entries).\n• Columns represent variables or attributes (e.g., Student_ID, Name, Marks, Course).\n\nIn Python, the `pandas` library represents this table as a `DataFrame`.",
+          "codeExample": "import pandas as pd\n\n# A DataFrame is a 2D labeled data structure with rows and columns\nprint(\"Pandas imported successfully\")",
+          "outputExample": "Pandas imported successfully",
+          "tip": "Think of a DataFrame as an interactive, programmatic spreadsheet table inside Python.",
+          "tableDataset": "student_performance"
+        },
+        {
+          "title": "Delimiters & File Formats",
+          "content": "Raw data files store rows as lines of text. A delimiter is the special character used to separate column values within each line.\n\n• CSV (Comma-Separated Values): uses a comma (`,`) as the delimiter.\n• TSV (Tab-Separated Values): uses a tab (`\\t`).\n• Other formats may use semicolons (`;`) or vertical pipes (`|`).",
+          "codeExample": "# Raw CSV line representation:\n# 101,Aarav,M,20,Data Science,Delhi,5.5,92,78\nprint(\"Comma is the standard CSV separator\")",
+          "outputExample": "Comma is the standard CSV separator",
+          "tip": "Always check your file's delimiter if columns appear bundled together as one long string."
+        },
+        {
+          "title": "Inspecting Data Dimensions",
+          "content": "Once imported, pandas provides quick methods to inspect the structure of your DataFrame:\n\n• `df.shape`: returns `(rows, columns)` tuple.\n• `df.columns`: lists all variable names.\n• `df.head()`: previews the first 5 observations.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\nprint(\"Shape:\", df.shape)\nprint(\"Columns:\", list(df.columns[:4]))",
+          "outputExample": "Shape: (10, 9)\nColumns: ['Student_ID', 'Name', 'Gender', 'Age']",
+          "tip": "Always inspect df.shape immediately after loading to confirm all rows and columns were imported.",
+          "tableDataset": "student_performance"
+        }
+      ],
+      "challenges": [
+        {
+          "id": "c1-delimiter-identify",
+          "title": "Identify the Delimiter",
+          "type": "multiple-choice",
+          "instructions": "Which character commonly separates values in a standard CSV file?",
+          "question": "What is the primary delimiter in a Comma-Separated Values (.csv) file?",
+          "options": [
+            "A. ,",
+            "B. :",
+            "C. #",
+            "D. @"
+          ],
+          "answer": "A. ,",
+          "hints": [
+            "CSV stands for 'Comma-Separated Values'."
+          ],
+          "explanation": "Correct! In a CSV file, individual fields on each row are separated by a comma (`,`).",
+          "xpReward": 20,
+          "coinReward": 5
+        },
+        {
+          "id": "c1-dataframe-concept",
+          "title": "DataFrame Architecture",
+          "type": "multiple-choice",
+          "instructions": "In tabular data analysis with pandas, what does each row in the student performance dataset represent?",
+          "question": "student_performance.csv row representation:",
+          "options": [
+            "A. An individual student observation/record",
+            "B. A summary statistic of the entire cohort",
+            "C. A file format delimiter",
+            "D. An index column label"
+          ],
+          "answer": "A. An individual student observation/record",
+          "hints": [
+            "Rows hold records/observations, whereas columns represent attributes/variables."
+          ],
+          "explanation": "Correct! Each row corresponds to a single observation (a student), while columns represent measured variables.",
+          "xpReward": 20,
+          "coinReward": 5,
+          "tableDataset": "student_performance"
+        },
+        {
+          "id": "c1-inspect-columns",
+          "title": "Inspect DataFrame Columns",
+          "type": "write-code",
+          "instructions": "Write code to inspect the column names of the student performance DataFrame using df.columns.",
+          "starterCode": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\nprint(list(df.columns))\n",
+          "solution": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\nprint(list(df.columns))",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "['Student_ID', 'Name', 'Gender', 'Age', 'Course', 'City', 'Study_Hours', 'Attendance', 'Marks']",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Access the columns attribute: df.columns",
+            "Wrap it in print(list(df.columns)) to display all attribute names."
+          ],
+          "explanation": "Great job! df.columns provides quick programmatic access to every attribute in your dataset.",
+          "xpReward": 20,
+          "coinReward": 5,
+          "tableDataset": "student_performance"
+        }
+      ]
+    },
+    {
+      "id": "quest-2-import-forge",
+      "worldId": "data-cleaning",
+      "order": 2,
+      "title": "Data Import Forge",
+      "description": "Harness pd.read_csv(), open(), web URL streams, and pd.read_excel() to import external data.",
+      "topics": [
+        "pd.read_csv()",
+        "open() vs pd.read_csv()",
+        "Reading from Web URLs",
+        "pd.read_excel() for .xlsx files"
+      ],
+      "mapX": 190,
+      "mapY": 200,
+      "xpReward": 70,
+      "coinReward": 20,
+      "lessons": [
+        {
+          "title": "Reading CSV with pandas",
+          "content": "The standard and most convenient method to import CSV data in Python is `pd.read_csv()`.\n\n`pd.read_csv()` automatically parses headers, detects types, and loads records into a structured DataFrame ready for analytics.",
+          "codeExample": "import pandas as pd\n\ndf = pd.read_csv(\"student_performance.csv\")\nprint(df.head(2))",
+          "outputExample": "   Student_ID   Name Gender  Age        Course   City  Study_Hours  Attendance  Marks\n0         101  Aarav      M   20  Data Science  Delhi          5.5        92.0   78.0\n1         102   Diya      F   21   ML           Mumbai         6.0        88.0    NaN",
+          "tip": "pd.read_csv() handles file paths, parsing, and type conversions in a single invocation.",
+          "tableDataset": "student_performance"
+        },
+        {
+          "title": "Python's Built-In open() Method",
+          "content": "Python includes a built-in `open()` function for working with raw files.\n\nWhile `open()` allows reading lines of text into Python strings, it does not structure tabular data or parse columns into vectors. For analytical tasks, `pd.read_csv()` builds on top of low-level readers to create structured DataFrames.",
+          "codeExample": "# Low-level file opening in Python\nwith open(\"student_performance.csv\", \"r\") as f:\n    first_line = f.readline().strip()\nprint(\"Header line:\", first_line)",
+          "outputExample": "Header line: Student_ID,Name,Gender,Age,Course,City,Study_Hours,Attendance,Marks",
+          "tip": "Use open() when reading arbitrary raw text files; use pd.read_csv() when you need tabular analysis."
+        },
+        {
+          "title": "Reading Data from a URL",
+          "content": "In cloud and collaborative workflows, datasets often reside online.\n\nInstead of manually downloading files to your desktop, `pd.read_csv()` accepts web URLs directly (HTTP/HTTPS) and streams remote CSV data straight into your workspace!",
+          "codeExample": "# Reading from remote web sources directly:\n# df_web = pd.read_csv(\"https://example.com/dataset.csv\")\nprint(\"URL streams load directly into memory\")",
+          "outputExample": "URL streams load directly into memory",
+          "tip": "Ensure the URL points to raw CSV text rather than an HTML download page."
+        },
+        {
+          "title": "Importing Excel Files (.xls / .xlsx)",
+          "content": "Excel spreadsheets often store business reports.\n\nPandas provides `pd.read_excel()` to load `.xls` and `.xlsx` workbooks. By default, it reads the first worksheet, or you can specify `sheet_name='Sheet1'`.",
+          "codeExample": "import pandas as pd\n\n# Reading an Excel workbook:\n# df_excel = pd.read_excel(\"student_performance.xlsx\", sheet_name=\"Students\")\nprint(\"pd.read_excel handles .xlsx spreadsheets\")",
+          "outputExample": "pd.read_excel handles .xlsx spreadsheets",
+          "tip": "Reading modern .xlsx files relies on engines like openpyxl behind the scenes."
+        }
+      ],
+      "challenges": [
+        {
+          "id": "c2-choose-excel-import",
+          "title": "Choose Excel Import Method",
+          "type": "multiple-choice",
+          "instructions": "Which pandas function is used to import an Excel workbook (.xlsx or .xls)?",
+          "question": "Import function for Excel spreadsheets:",
+          "options": [
+            "A. pd.read_excel()",
+            "B. pd.open_excel()",
+            "C. pd.read_sheet()",
+            "D. pd.import_workbook()"
+          ],
+          "answer": "A. pd.read_excel()",
+          "hints": [
+            "Pandas uses the read_* naming convention: read_csv(), read_excel()."
+          ],
+          "explanation": "Correct! pd.read_excel() is the dedicated pandas method for loading .xls and .xlsx spreadsheets.",
+          "xpReward": 20,
+          "coinReward": 5
+        },
+        {
+          "id": "c2-fix-import-syntax",
+          "title": "Repair Broken Import Statement",
+          "type": "fix-bug",
+          "instructions": "The import incantation is broken! Add the missing parentheses to call pd.read_csv correctly:",
+          "question": "df = pd.read_csv \"student_performance.csv\"",
+          "starterCode": "df = pd.read_csv \"student_performance.csv\"",
+          "solution": "df = pd.read_csv(\"student_performance.csv\")",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "(10, 9)",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Function arguments in Python must be enclosed in parentheses: pd.read_csv(\"...\")"
+          ],
+          "explanation": "Spell Repaired! Function arguments in Python must be passed within parentheses.",
+          "xpReward": 25,
+          "coinReward": 5,
+          "tableDataset": "student_performance"
+        },
+        {
+          "id": "c2-write-import-statement",
+          "title": "Import CSV Dataset",
+          "type": "write-code",
+          "instructions": "Complete the statement to import 'student_performance.csv' using pd.read_csv and print df.shape.",
+          "starterCode": "import pandas as pd\ndf = pd.________(\"student_performance.csv\")\nprint(df.shape)\n",
+          "solution": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\nprint(df.shape)",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "(10, 9)",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Use pd.read_csv(\"student_performance.csv\")"
+          ],
+          "explanation": "Excellent! You imported the classroom student performance dataset.",
+          "xpReward": 25,
+          "coinReward": 10,
+          "tableDataset": "student_performance"
+        }
+      ]
+    },
+    {
+      "id": "quest-3-export-workshop",
+      "worldId": "data-cleaning",
+      "order": 3,
+      "title": "Data Export Workshop",
+      "description": "Master df.to_csv(), df.to_excel(), index=False, ExcelWriter for multiple sheets, and raw data preservation.",
+      "topics": [
+        "df.to_csv()",
+        "index=False parameter",
+        "df.to_excel()",
+        "Multiple Sheets with pd.ExcelWriter",
+        "Golden Rule: Raw Data Preservation"
+      ],
+      "mapX": 320,
+      "mapY": 340,
+      "xpReward": 75,
+      "coinReward": 20,
+      "lessons": [
+        {
+          "title": "Writing to CSV & index=False",
+          "content": "To save a DataFrame back to disk, pandas provides `df.to_csv(\"filename.csv\")`.\n\nCrucial Academic Concept: By default, pandas writes its integer index (0, 1, 2...) into the file. Using `index=False` prevents pandas from adding the row index as an unwanted extra column in your output file!",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Save without row index numbers:\ndf.to_csv(\"cleaned.csv\", index=False)\nprint(\"Saved raw data to 'cleaned.csv' with index=False\")",
+          "outputExample": "Saved raw data to 'cleaned.csv' with index=False",
+          "tip": "Always specify index=False unless your index has meaningful labels (such as dates)."
+        },
+        {
+          "title": "Writing to Excel (.xlsx)",
+          "content": "To generate an Excel spreadsheet for business stakeholders, use `df.to_excel(\"cleaned.xlsx\", index=False)`.\n\nLike `to_csv()`, passing `index=False` ensures clean spreadsheet columns without redundant index numbers.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Export to an Excel workbook\ndf.to_excel(\"cleaned.xlsx\", index=False)\nprint(\"Saved data to 'cleaned.xlsx'\")",
+          "outputExample": "Saved data to 'cleaned.xlsx'",
+          "tip": "Excel files make it easy for non-technical team members to inspect results."
+        },
+        {
+          "title": "Multiple Worksheets with ExcelWriter",
+          "content": "Often you need to output multiple related tables into a single workbook.\n\n`pd.ExcelWriter()` with a Python context manager (`with`) allows writing multiple DataFrames to distinct worksheets (e.g. 'Students' and 'Sales') within one file!",
+          "codeExample": "import pandas as pd\nstudents = pd.read_csv(\"student_performance.csv\")\nsales = pd.read_csv(\"sales_data.csv\")\n\n# Create multi-sheet workbook using openpyxl engine:\nwith pd.ExcelWriter(\"final_report.xlsx\", engine=\"openpyxl\") as writer:\n    students.to_excel(writer, sheet_name=\"Students\", index=False)\n    sales.to_excel(writer, sheet_name=\"Sales\", index=False)\nprint(\"Saved multi-sheet workbook\")",
+          "outputExample": "Saved multi-sheet workbook",
+          "tip": "ExcelWriter automatically saves and closes the file when exiting the with-block.",
+          "tableDataset": "sales"
+        },
+        {
+          "title": "Golden Rule: Raw Data Preservation",
+          "content": "Fundamental Teaching Principle from the Classroom Notes:\n\nAlways preserve the original/raw dataset! Never perform destructive in-place modifications that overwrite your raw source files.\n\nAlways perform cleaning on a working copy and save the cleaned result under a distinct filename (e.g., `cleaned_student_performance.csv`).",
+          "codeExample": "# Golden Rule: Keep raw source intact\n# df_raw = pd.read_csv(\"raw_data.csv\")\n# df_clean = df_raw.copy()\n# df_clean.to_csv(\"cleaned_data.csv\", index=False)\nprint(\"Preserve raw data -> Output to separate cleaned file\")",
+          "outputExample": "Preserve raw data -> Output to separate cleaned file",
+          "tip": "If a cleaning step is flawed, you can always reload the pristine raw dataset."
+        }
+      ],
+      "challenges": [
+        {
+          "id": "c3-index-false-purpose",
+          "title": "Purpose of index=False",
+          "type": "multiple-choice",
+          "instructions": "What is the primary purpose of specifying index=False when exporting with to_csv() or to_excel()?",
+          "question": "Why do we pass index=False?",
+          "options": [
+            "A. Prevents the DataFrame's row index from being written as an unnecessary extra column",
+            "B. Deletes all row indices from computer RAM permanently",
+            "C. Sorts the output file in reverse order",
+            "D. Hides the column headers in the spreadsheet"
+          ],
+          "answer": "A. Prevents the DataFrame's row index from being written as an unnecessary extra column",
+          "hints": [
+            "Think about what pandas row numbers (0, 1, 2...) would do if saved into the CSV."
+          ],
+          "explanation": "Correct! index=False prevents pandas from writing its integer index into the file as an extra unneeded column.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c3-raw-data-preservation",
+          "title": "Raw Data Preservation",
+          "type": "multiple-choice",
+          "instructions": "According to best analytical practices emphasized in the course notes, how should cleaned data be saved?",
+          "question": "What is the golden rule for saving cleaned datasets?",
+          "options": [
+            "A. Save cleaned data under a separate filename to preserve the raw dataset intact",
+            "B. Overwrite the original raw file immediately without backup",
+            "C. Delete the original file from the server",
+            "D. Never save cleaned data to disk"
+          ],
+          "answer": "A. Save cleaned data under a separate filename to preserve the raw dataset intact",
+          "hints": [
+            "Raw data should always be preserved so analyses can be reproduced or audited."
+          ],
+          "explanation": "Spot on! Always preserve the original raw dataset and save cleaned outputs to separate files.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c3-export-csv-code",
+          "title": "Export to Cleaned CSV",
+          "type": "write-code",
+          "instructions": "Complete the statement to export df to 'cleaned.csv' without writing the row index numbers.",
+          "starterCode": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf.to_csv(\"cleaned.csv\", ________=False)\nprint(\"Saved successfully with index=False\")\n",
+          "solution": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf.to_csv(\"cleaned.csv\", index=False)\nprint(\"Saved successfully with index=False\")",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "Saved successfully with index=False",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Use the parameter: index=False"
+          ],
+          "explanation": "Great job! df.to_csv('cleaned.csv', index=False) outputs a pristine CSV file.",
+          "xpReward": 25,
+          "coinReward": 10
+        }
+      ]
+    },
+    {
+      "id": "quest-4-missing-value-dungeon",
+      "worldId": "data-cleaning",
+      "order": 4,
+      "title": "Missing Value Dungeon",
+      "description": "Detect missingness with isna().sum(), calculate percentages, drop rows with dropna(), impute with median, and execute ffill/bfill.",
+      "topics": [
+        "df.isna().sum() & Counts",
+        "df.isna().mean() * 100 & Percentages",
+        "dropna(subset=['Marks'])",
+        "fillna(median()) Imputation",
+        "Forward Fill (ffill) & Backward Fill (bfill)"
+      ],
+      "mapX": 450,
+      "mapY": 170,
+      "xpReward": 85,
+      "coinReward": 25,
+      "lessons": [
+        {
+          "title": "Detecting Missing Values (isna & sum)",
+          "content": "Real-world datasets frequently contain missing values (represented as `NaN` — Not a Number in pandas).\n\n• `df.isna()`: returns `True` for missing cells and `False` for valid observations.\n• `df.isna().sum()`: sums the `True` values across each column, yielding the exact missing value count per attribute.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Count missing values per column:\nprint(df.isna().sum())",
+          "outputExample": "Student_ID     0\nName           0\nGender         1\nAge            0\nCourse         0\nCity           2\nStudy_Hours    0\nAttendance     2\nMarks          2\ndtype: int64",
+          "tip": "Both isna() and isnull() are aliases in pandas and produce identical results.",
+          "tableDataset": "student_performance"
+        },
+        {
+          "title": "Calculating Missing Percentages",
+          "content": "To understand the severity of missingness relative to sample size, compute the percentage of missing values per column:\n\n`df.isna().mean() * 100`\n\nBecause Python evaluates `True` as `1` and `False` as `0`, the mean of a boolean column gives the proportion of missing values. Multiplying by 100 gives the percentage.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Percentage of missing observations per variable:\nprint(df.isna().mean() * 100)",
+          "outputExample": "Student_ID      0.0\nName            0.0\nGender         10.0\nAge             0.0\nCourse          0.0\nCity           20.0\nStudy_Hours     0.0\nAttendance     20.0\nMarks          20.0\ndtype: float64",
+          "tip": "A column with 80% missing data may need to be dropped, while 5% missing can be imputed.",
+          "tableDataset": "student_performance"
+        },
+        {
+          "title": "Removing Missing Values (dropna)",
+          "content": "When missing rows cannot be reliably filled, `df.dropna()` removes incomplete observations.\n\nTo avoid indiscriminately deleting rows across all columns, specify the `subset` argument:\n\n`df_dropped = df.dropna(subset=[\"Marks\"])`\n\nAcademic Note: Dropping rows reduces your sample size. This decision should always be justified and documented.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\ndf_dropped = df.dropna(subset=[\"Marks\"])\nprint(f\"Original rows: {len(df)}, After dropping missing Marks: {len(df_dropped)}\")",
+          "outputExample": "Original rows: 10, After dropping missing Marks: 8",
+          "tip": "Always inspect length before and after dropna() to monitor lost sample size."
+        },
+        {
+          "title": "Filling Missing Values with Median",
+          "content": "Rather than discarding valuable observations, we can impute missing numeric entries with a summary statistic.\n\n`df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())`\n\nWhy Median? The median represents the middle score and is robust to extreme outliers or skewed distributions.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\nmedian_marks = df[\"Marks\"].median()\nprint(\"Median Marks:\", median_marks)\n\ndf[\"Marks\"] = df[\"Marks\"].fillna(median_marks)\nprint(\"Remaining missing Marks:\", df[\"Marks\"].isna().sum())",
+          "outputExample": "Median Marks: 74.0\nRemaining missing Marks: 0",
+          "tip": "For skewed data, median is often preferred over mean to avoid outlier distortion.",
+          "tableDataset": "student_performance"
+        },
+        {
+          "title": "Forward Fill (ffill) & Backward Fill (bfill)",
+          "content": "In ordered or time-series data, sequential proximity has substantive meaning.\n\n• `ffill()` (Forward Fill): carries the previous available observation forward into subsequent missing cells.\n• `bfill()` (Backward Fill): carries the next available observation backward into preceding missing cells.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Carry previous attendance observation forward:\ndf[\"Attendance\"] = df[\"Attendance\"].ffill()\nprint(\"Attendance missing after ffill:\", df[\"Attendance\"].isna().sum())",
+          "outputExample": "Attendance missing after ffill: 0",
+          "tip": "Forward fill is especially meaningful when data arrives chronologically."
+        }
+      ],
+      "challenges": [
+        {
+          "id": "c4-count-missing",
+          "title": "Detect Missing Values",
+          "type": "multiple-choice",
+          "instructions": "Which pandas statement calculates the count of missing values in each column?",
+          "question": "Count missing values per variable:",
+          "options": [
+            "A. df.isna().sum()",
+            "B. df.count_nulls()",
+            "C. df.missing_values()",
+            "D. df.dropna().count()"
+          ],
+          "answer": "A. df.isna().sum()",
+          "hints": [
+            "isna() creates boolean True/False masks, and sum() tallies the Trues."
+          ],
+          "explanation": "Correct! df.isna().sum() evaluates True as 1 and computes the count of missing cells per column.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c4-missing-percentage",
+          "title": "Missing Value Percentage",
+          "type": "multiple-choice",
+          "instructions": "Why does df.isna().mean() * 100 calculate the percentage of missing values?",
+          "question": "How does df.isna().mean() * 100 work mathematically?",
+          "options": [
+            "A. True is treated as 1 and False as 0, so the mean gives the proportion of missing values",
+            "B. It multiplies row counts by 100 automatically",
+            "C. mean() calculates the median of non-missing rows",
+            "D. It divides the column standard deviation by sample size"
+          ],
+          "answer": "A. True is treated as 1 and False as 0, so the mean gives the proportion of missing values",
+          "hints": [
+            "In Python, boolean True == 1 and False == 0."
+          ],
+          "explanation": "Correct! True evaluates as 1 and False as 0, so the mean represents the proportion; multiplying by 100 converts it to a percentage.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c4-fix-median-fillna",
+          "title": "Fix Median Imputation Code",
+          "type": "fix-bug",
+          "instructions": "The median imputation code is missing parentheses on the .median method call. Repair it:",
+          "question": "df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median)",
+          "starterCode": "df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median)",
+          "solution": "df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "0",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "median is a method and must be called with parentheses: df[\"Marks\"].median()"
+          ],
+          "explanation": "Spell Repaired! In Python, method calls require parentheses () to execute.",
+          "xpReward": 25,
+          "coinReward": 5,
+          "tableDataset": "student_performance"
+        },
+        {
+          "id": "c4-forward-fill-code",
+          "title": "Forward Fill Attendance",
+          "type": "write-code",
+          "instructions": "Apply forward fill (.ffill()) to the 'Attendance' column and print the count of missing values remaining.",
+          "starterCode": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Attendance\"] = df[\"Attendance\"].________()\nprint(df[\"Attendance\"].isna().sum())\n",
+          "solution": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Attendance\"] = df[\"Attendance\"].ffill()\nprint(df[\"Attendance\"].isna().sum())",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "0",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Use .ffill() to carry the previous available value forward."
+          ],
+          "explanation": "Brilliant! You executed forward fill to impute missing attendance values.",
+          "xpReward": 25,
+          "coinReward": 10,
+          "tableDataset": "student_performance"
+        }
+      ]
+    },
+    {
+      "id": "quest-5-category-forge",
+      "worldId": "data-cleaning",
+      "order": 5,
+      "title": "Category Forge",
+      "description": "Convert categorical columns to numerical indicators with pd.get_dummies(), handle missing categories, and avoid the dummy-variable trap.",
+      "topics": [
+        "Categorical Variables",
+        "Pre-Encoding Missing Categories",
+        "pd.get_dummies(dtype=int)",
+        "The Dummy-Variable Trap",
+        "drop_first=True & Reference Groups"
+      ],
+      "mapX": 580,
+      "mapY": 330,
+      "xpReward": 85,
+      "coinReward": 25,
+      "lessons": [
+        {
+          "title": "Categorical Data & Pre-Encoding",
+          "content": "Statistical and machine-learning models require numerical input. Categorical variables (such as Gender or Course) must be encoded as numbers.\n\nCrucial Teaching Step from Notes: If a categorical column contains missing values, replace them with an explicit category (e.g., `'Unknown'`) before encoding:\n\n`df[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")`\n\nThis ensures missing observations are not silently lost during dummy variable generation.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Explicitly handle missing categorical entries:\ndf[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")\nprint(df[\"Gender\"].value_counts())",
+          "outputExample": "Gender\nM          5\nF          4\nUnknown    1\nName: count, dtype: int64",
+          "tip": "Handling missing categories explicitly preserves row counts and prevents silent omissions.",
+          "tableDataset": "student_performance"
+        },
+        {
+          "title": "Creating Dummy Variables (get_dummies)",
+          "content": "Pandas creates binary (0/1) indicator columns using `pd.get_dummies()`.\n\nEach unique category receives its own indicator column. Passing `dtype=int` ensures indicators are stored as clean 0 and 1 integers instead of boolean True/False.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")\n\n# Generate dummy indicator columns:\ndf_dummies = pd.get_dummies(df, columns=[\"Gender\"], dtype=int)\nprint([c for c in df_dummies.columns if \"Gender\" in c])",
+          "outputExample": "['Gender_F', 'Gender_M', 'Gender_Unknown']",
+          "tip": "Dummy columns let models measure category-specific intercept effects.",
+          "tableDataset": "student_performance"
+        },
+        {
+          "title": "The Dummy-Variable Trap & drop_first=True",
+          "content": "The Dummy-Variable Trap occurs when all category columns are included alongside an intercept term in a regression model.\n\nBecause the sum of all dummy indicators equals 1 for every observation, the columns suffer from perfect linear dependence (perfect multicollinearity)!\n\nSolution: Use `drop_first=True`. Dropping one category removes linear dependence and establishes the omitted category as the reference/baseline group.",
+          "codeExample": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Avoid multicollinearity with drop_first=True:\ndf_course = pd.get_dummies(df, columns=[\"Course\"], drop_first=True, dtype=int)\nprint([c for c in df_course.columns if \"Course\" in c])",
+          "outputExample": "['Course_Data Science', 'Course_Machine Learning']",
+          "tip": "Business Analytics was dropped and acts as the reference baseline group against which others are compared.",
+          "tableDataset": "student_performance"
+        }
+      ],
+      "challenges": [
+        {
+          "id": "c5-dummy-trap-concept",
+          "title": "The Dummy-Variable Trap",
+          "type": "multiple-choice",
+          "instructions": "What problem does drop_first=True prevent when creating dummy variables?",
+          "question": "What is the purpose of drop_first=True in dummy encoding?",
+          "options": [
+            "A. Perfect linear dependence (multicollinearity) when an intercept is included",
+            "B. Accidental deletion of numerical columns",
+            "C. Formatting numbers as strings",
+            "D. Exceeding memory limits"
+          ],
+          "answer": "A. Perfect linear dependence (multicollinearity) when an intercept is included",
+          "hints": [
+            "If all k category indicators sum to 1, they are perfectly collinear with the model intercept."
+          ],
+          "explanation": "Correct! If all k dummy columns are included with an intercept, they are perfectly linearly dependent. drop_first=True resolves this.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c5-reference-group-concept",
+          "title": "Reference Group Role",
+          "type": "multiple-choice",
+          "instructions": "When drop_first=True omits the first category column, what role does that omitted category serve in statistical models?",
+          "question": "What happens to the omitted category?",
+          "options": [
+            "A. It serves as the baseline / reference group against which other categories are compared",
+            "B. It is permanently deleted from the raw file",
+            "C. It is converted into NaN",
+            "D. It is assigned a value of infinity"
+          ],
+          "answer": "A. It serves as the baseline / reference group against which other categories are compared",
+          "hints": [
+            "The model intercept captures the expected value of the baseline/reference group."
+          ],
+          "explanation": "Exact! The omitted category serves as the benchmark reference group.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c5-create-dummies-code",
+          "title": "Encode Course with drop_first=True",
+          "type": "write-code",
+          "instructions": "Complete the pd.get_dummies call to encode the 'Course' column using drop_first=True and dtype=int.",
+          "starterCode": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf_encoded = pd.get_dummies(df, columns=[\"Course\"], ________=True, dtype=int)\nprint([c for c in df_encoded.columns if \"Course\" in c])\n",
+          "solution": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf_encoded = pd.get_dummies(df, columns=[\"Course\"], drop_first=True, dtype=int)\nprint([c for c in df_encoded.columns if \"Course\" in c])",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "['Course_Data Science', 'Course_Machine Learning']",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Specify drop_first=True as the argument."
+          ],
+          "explanation": "Well done! You generated dummy variables and avoided the dummy-variable trap.",
+          "xpReward": 25,
+          "coinReward": 10,
+          "tableDataset": "student_performance"
+        }
+      ]
+    },
+    {
+      "id": "quest-6-visualization-tower",
+      "worldId": "data-cleaning",
+      "order": 6,
+      "title": "Visualization Tower",
+      "description": "Ascend the tower with matplotlib scatter plots, histograms with bins=8, boxplots, and categorical boxplots.",
+      "topics": [
+        "plt.scatter() & Association vs Causation",
+        "plt.hist() & Bins",
+        "plt.boxplot() & Five-Number Summary",
+        "df.boxplot(column, by) by Category"
+      ],
+      "mapX": 710,
+      "mapY": 180,
+      "xpReward": 90,
+      "coinReward": 25,
+      "lessons": [
+        {
+          "title": "Scatter Plots: Association vs Causation",
+          "content": "Scatter plots display the relationship between two continuous numeric variables.\n\n`plt.scatter(df[\"Study_Hours\"], df[\"Marks\"])`\n\nAcademic Distinction from Notes: A scatter plot helps identify associations, clusters, and potential outliers. However, an observed association between variables does NOT by itself prove causation!",
+          "codeExample": "import matplotlib.pyplot as plt\nimport pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\nplt.scatter(df[\"Study_Hours\"], df[\"Marks\"])\nplt.xlabel(\"Study hours\")\nplt.ylabel(\"Marks\")\nplt.title(\"Study Hours vs Marks\")\nplt.show()",
+          "outputExample": "Scatter plot displayed: positive association between Study Hours & Marks",
+          "tip": "Always label your axes with plt.xlabel() and plt.ylabel() so viewers understand the units.",
+          "chartPreview": {
+            "type": "scatter",
+            "title": "Study Hours vs Marks (Scatter Plot)",
+            "subtitle": "Positive association visible between study investment and student exam scores."
+          }
+        },
+        {
+          "title": "Histograms: Frequency Distributions",
+          "content": "A histogram displays the frequency distribution of a single numeric variable.\n\n`plt.hist(df[\"Marks\"].dropna(), bins=8)`\n\n• `dropna()` removes missing entries before plotting.\n• `bins=8` divides the numeric score range into 8 equal intervals. The y-axis shows the count of observations falling within each interval.",
+          "codeExample": "import matplotlib.pyplot as plt\nimport pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\nplt.hist(df[\"Marks\"].dropna(), bins=8)\nplt.xlabel(\"Marks\")\nplt.ylabel(\"Frequency\")\nplt.title(\"Distribution of Marks\")\nplt.show()",
+          "outputExample": "Histogram displayed: Marks divided into 8 frequency bins",
+          "tip": "The choice of bins affects the visual shape of the distribution.",
+          "chartPreview": {
+            "type": "histogram",
+            "title": "Distribution of Marks (Histogram)",
+            "subtitle": "Frequency distribution across 8 score intervals."
+          }
+        },
+        {
+          "title": "Boxplots: Five-Number Summary",
+          "content": "A boxplot summarizes the distribution of a numeric variable using five key statistics:\n\n1. Minimum (lower whisker)\n2. First Quartile (Q1 - 25th percentile)\n3. Median (middle line - 50th percentile)\n4. Third Quartile (Q3 - 75th percentile)\n5. Maximum (upper whisker)\n\nPoints plotted beyond the whiskers indicate potential outliers.",
+          "codeExample": "import matplotlib.pyplot as plt\nimport pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\nplt.boxplot(df[\"Marks\"].dropna())\nplt.ylabel(\"Marks\")\nplt.title(\"Boxplot of Marks\")\nplt.show()",
+          "outputExample": "Boxplot displayed: Median at 74.0, Q1 at 66.5, Q3 at 86.5",
+          "tip": "The central box represents the Interquartile Range (IQR), containing the middle 50% of data.",
+          "chartPreview": {
+            "type": "boxplot",
+            "title": "Boxplot of Marks",
+            "subtitle": "Five-number summary showing median, quartiles, and range."
+          }
+        },
+        {
+          "title": "Boxplots by Category",
+          "content": "To compare distributions across different groups, pandas provides grouped boxplots:\n\n`df.boxplot(column=\"Marks\", by=\"Course\")`\n\nThis generates side-by-side boxplots for each course category, allowing immediate visual comparison of group medians, spread, and outliers.",
+          "codeExample": "import matplotlib.pyplot as plt\nimport pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\ndf.boxplot(column=\"Marks\", by=\"Course\")\nplt.suptitle(\"\")\nplt.title(\"Marks by Course\")\nplt.ylabel(\"Marks\")\nplt.show()",
+          "outputExample": "Grouped boxplot displayed comparing Business Analytics, Data Science, and ML",
+          "tip": "plt.suptitle('') cleans up pandas' default automatic secondary title.",
+          "chartPreview": {
+            "type": "boxplot-category",
+            "title": "Marks by Course (Grouped Boxplot)",
+            "subtitle": "Side-by-side distribution comparison across academic programs."
+          }
+        }
+      ],
+      "challenges": [
+        {
+          "id": "c6-scatter-causation",
+          "title": "Scatter Plot & Causation",
+          "type": "multiple-choice",
+          "instructions": "When analyzing a positive pattern in a scatter plot between Study Hours and Marks, what critical distinction must be observed?",
+          "question": "What does a scatter plot demonstrate?",
+          "options": [
+            "A. It displays statistical association between two numeric variables, but association does not prove causation",
+            "B. It proves that studying directly causes high marks in 100% of scenarios",
+            "C. It calculates the percentage of missing values",
+            "D. It generates multiple Excel sheets"
+          ],
+          "answer": "A. It displays statistical association between two numeric variables, but association does not prove causation",
+          "hints": [
+            "Remember the core statistical maxim: correlation/association does not imply causation."
+          ],
+          "explanation": "Correct! A scatter plot reveals empirical association, but confounding variables or reverse causality mean association does not prove causation.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c6-boxplot-metrics",
+          "title": "Metrics Summarized by a Boxplot",
+          "type": "multiple-choice",
+          "instructions": "Which set of statistical metrics is directly visualized by a boxplot?",
+          "question": "What metrics does a boxplot display?",
+          "options": [
+            "A. Median, quartiles, interquartile range (IQR), whiskers, and potential outliers",
+            "B. P-values and regression coefficients only",
+            "C. Standard error of the mean only",
+            "D. Cumulative probability distribution functions"
+          ],
+          "answer": "A. Median, quartiles, interquartile range (IQR), whiskers, and potential outliers",
+          "hints": [
+            "A boxplot provides a five-number summary."
+          ],
+          "explanation": "Correct! Boxplots summarize the median, quartiles (Q1, Q3), interquartile range, whiskers, and outlying points.",
+          "xpReward": 25,
+          "coinReward": 5
+        },
+        {
+          "id": "c6-write-scatter-code",
+          "title": "Create Scatter Plot Statement",
+          "type": "write-code",
+          "instructions": "Complete the code to create a scatter plot of Study_Hours vs Marks using plt.scatter.",
+          "starterCode": "import matplotlib.pyplot as plt\nimport pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\nplt.scatter(df[\"Study_Hours\"], df[\"________\"])\nprint(\"Scatter plot constructed successfully\")\n",
+          "solution": "import matplotlib.pyplot as plt\nimport pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\nplt.scatter(df[\"Study_Hours\"], df[\"Marks\"])\nprint(\"Scatter plot constructed successfully\")",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "Scatter plot constructed successfully",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Pass df[\"Marks\"] as the second argument (y-axis)."
+          ],
+          "explanation": "Superb! You created the Study Hours vs Marks scatter plot.",
+          "xpReward": 25,
+          "coinReward": 10,
+          "chartPreview": {
+            "type": "scatter",
+            "title": "Study Hours vs Marks",
+            "subtitle": "Scatter plot showing association between variables."
+          }
+        }
+      ]
+    },
+    {
+      "id": "quest-7-clean-data-boss",
+      "worldId": "data-cleaning",
+      "order": 7,
+      "title": "The Clean Data Trial",
+      "description": "Execute the full classroom data-cleaning workflow: READ -> INSPECT -> IMPUTE -> ENCODE -> VISUALIZE -> EXPORT.",
+      "topics": [
+        "End-to-End Data Cleaning Workflow",
+        "Pipeline Inspection & Numeric Imputation",
+        "Categorical Imputation & Dummy Encoding",
+        "Data Export with index=False"
+      ],
+      "mapX": 840,
+      "mapY": 300,
+      "boss": true,
+      "xpReward": 150,
+      "coinReward": 50,
+      "lessons": [
+        {
+          "title": "The Grand Data-Cleaning Trial",
+          "content": "Welcome to the culmination of Module 1: The Clean Data Trial!\n\nYou have been provided with the raw `student_performance.csv` dataset containing missing test scores, absent attendance values, missing cities, and unencoded categorical variables.\n\nYour quest is to execute the complete classroom data cleaning pipeline:\n\n1. READ raw data\n2. INSPECT missingness with `isna().sum()`\n3. IMPUTE numeric columns (`Marks`, `Attendance`) using their medians\n4. IMPUTE categorical columns (`City`, `Gender`) with `'Unknown'`\n5. ENCODE categorical columns (`Gender`) using `pd.get_dummies(..., drop_first=True)`\n6. EXPORT the pristine result to `cleaned_student_performance.csv` with `index=False`!",
+          "codeExample": "# Full Pipeline Outline:\n# df = pd.read_csv(\"student_performance.csv\")\n# df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())\n# df[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")\n# df = pd.get_dummies(df, columns=[\"Gender\"], drop_first=True, dtype=int)\n# df.to_csv(\"cleaned_student_performance.csv\", index=False)",
+          "outputExample": "Cleaned dataset saved with 0 missing values and dummy encoding.",
+          "tip": "Execute each step with precision to purify the dataset.",
+          "tableDataset": "student_performance"
+        }
+      ],
+      "challenges": [
+        {
+          "id": "boss-stage-1-workflow-order",
+          "title": "Stage 1: Verify the Cleaning Sequence",
+          "type": "multiple-choice",
+          "instructions": "According to the course notes, what is the correct sequence of the standard data cleaning pipeline?",
+          "question": "What is the recommended data cleaning workflow?",
+          "options": [
+            "A. READ -> INSPECT -> HANDLE MISSING VALUES -> ENCODE CATEGORIES -> VISUALIZE -> SAVE CLEANED DATA",
+            "B. SAVE CLEANED DATA -> DELETE RAW -> ENCODE -> READ",
+            "C. PLOT -> DROP EVERYTHING -> READ -> EXCEL",
+            "D. ENCODE CATEGORIES -> EXPORT -> READ -> INSPECT"
+          ],
+          "answer": "A. READ -> INSPECT -> HANDLE MISSING VALUES -> ENCODE CATEGORIES -> VISUALIZE -> SAVE CLEANED DATA",
+          "hints": [
+            "Always inspect and clean before encoding and saving."
+          ],
+          "explanation": "Correct! That is the official end-to-end data cleaning workflow from the classroom notes.",
+          "xpReward": 30,
+          "coinReward": 10
+        },
+        {
+          "id": "boss-stage-2-impute-pipeline",
+          "title": "Stage 2: Impute Missing Numeric & Categorical",
+          "type": "write-code",
+          "instructions": "Execute numeric median imputation on 'Marks' and 'Attendance', and categorical imputation ('Unknown') on 'City' and 'Gender'. Print the total missing values across the DataFrame.",
+          "starterCode": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# 1. Impute numeric with median\ndf[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())\ndf[\"Attendance\"] = df[\"Attendance\"].fillna(df[\"Attendance\"].median())\n\n# 2. Impute categorical with 'Unknown'\ndf[\"City\"] = df[\"City\"].fillna(\"Unknown\")\ndf[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")\n\nprint(\"Total missing values:\", df.isna().sum().sum())\n",
+          "solution": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())\ndf[\"Attendance\"] = df[\"Attendance\"].fillna(df[\"Attendance\"].median())\ndf[\"City\"] = df[\"City\"].fillna(\"Unknown\")\ndf[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")\nprint(\"Total missing values:\", df.isna().sum().sum())",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "Total missing values: 0",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Use .fillna(df['Marks'].median()) for Marks",
+            "Use .fillna('Unknown') for City and Gender"
+          ],
+          "explanation": "Outstanding! You eradicated all missing values across both numerical and categorical attributes.",
+          "xpReward": 40,
+          "coinReward": 15,
+          "tableDataset": "student_performance"
+        },
+        {
+          "id": "boss-stage-3-complete-pipeline",
+          "title": "Stage 3: Full End-to-End Purification & Export",
+          "type": "write-code",
+          "instructions": "Complete the full end-to-end pipeline: load data, impute Marks (median), impute Gender ('Unknown'), encode Gender with pd.get_dummies(..., drop_first=True, dtype=int), and save to 'cleaned_student_performance.csv' with index=False.",
+          "starterCode": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\n\n# Impute\ndf[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())\ndf[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")\n\n# Encode Gender avoiding dummy trap\ndf = pd.get_dummies(df, columns=[\"Gender\"], drop_first=True, dtype=int)\n\n# Export cleaned dataset\ndf.to_csv(\"cleaned_student_performance.csv\", index=False)\nprint(\"CLEAN DATA TRIAL MASTERED\")\n",
+          "solution": "import pandas as pd\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())\ndf[\"Gender\"] = df[\"Gender\"].fillna(\"Unknown\")\ndf = pd.get_dummies(df, columns=[\"Gender\"], drop_first=True, dtype=int)\ndf.to_csv(\"cleaned_student_performance.csv\", index=False)\nprint(\"CLEAN DATA TRIAL MASTERED\")",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "CLEAN DATA TRIAL MASTERED",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Use pd.get_dummies(df, columns=[\"Gender\"], drop_first=True, dtype=int)",
+            "Call df.to_csv(\"cleaned_student_performance.csv\", index=False)"
+          ],
+          "explanation": "VICTORY! You conquered the Clean Data Trial! You have mastered the complete Module 1 Data Cleaning curriculum.",
+          "xpReward": 50,
+          "coinReward": 20,
+          "tableDataset": "student_performance"
+        }
+      ]
+    }
+  ]
+}

@@ -14,8 +14,9 @@
       "description": "Master statement syntax, learn what Python is, and cast your very first print() invocation.",
       "topics": [
         "What is Python?",
-        "print()",
-        "Basic syntax"
+        "Why Python is useful",
+        "What is print()?",
+        "Basic Python syntax"
       ],
       "mapX": 160,
       "mapY": 280,
@@ -23,45 +24,62 @@
       "coinReward": 25,
       "lessons": [
         {
-          "title": "Your First Python Program",
-          "content": "Python is a programming language used to build applications, automate tasks, analyze data, and much more.\n\nPython code is clean, readable, and written in plain English-like statements. In PyQuest, your Python code directly commands the computer to perform actions and solve challenges!",
-          "codeExample": "# Your first Python statement\nprint(\"Hello, Python!\")",
-          "tip": "Python code executes line by line from top to bottom."
+          "title": "What is Python?",
+          "content": "Python is a modern, high-level programming language celebrated worldwide for being clean, readable, and beginner-friendly.\n\nIn PyQuest, your Python code serves as magical incantations that command the computer to perform actions, manipulate data, and conquer coding quests!",
+          "codeExample": "# Your first Python comment\nhero = \"Coder\"",
+          "outputExample": "(Silent spell - comments and assignments produce no console output)",
+          "tip": "Python code reads almost like plain English sentences, making it the most popular language to learn!"
         },
         {
-          "title": "The print() Function",
-          "content": "The `print()` function is the primary tool to output information to the console screen.\n\nWhatever text you place inside `print(...)` surrounded by quotation marks will be displayed as output without the quotes!",
-          "codeExample": "print(\"Hello, Python!\")\n# Output displayed:\n# Hello, Python!",
-          "tip": "Always wrap your words in double quotes (\"...\") or single quotes ('...')."
+          "title": "Why Python is Useful",
+          "content": "Python powers incredible technologies worldwide — from NASA Mars rovers and Instagram backends to Netflix recommendations and cutting-edge artificial intelligence.\n\nBecause its syntax is concise, you can accomplish in 3 lines of Python what might require 20 lines in older programming languages.",
+          "codeExample": "# Clean and powerful commands\nspeed = 100\nprint(\"Ready for adventure!\")",
+          "outputExample": "Ready for adventure!",
+          "tip": "Clarity beats complexity: write clean, expressive code."
+        },
+        {
+          "title": "What is print()?",
+          "content": "The `print()` function is your primary invocation to display messages or numbers onto the console screen.\n\nWhatever text you place inside parentheses `(...)` enclosed by quotes will appear on the screen without the quotation marks!",
+          "codeExample": "print(\"Hello, Python!\")",
+          "outputExample": "Hello, Python!",
+          "tip": "Always wrap text strings in double quotes (\"...\") or single quotes ('...')."
+        },
+        {
+          "title": "Basic Python Syntax",
+          "content": "Python executes instructions line by line from top to bottom.\n\nEvery opening parenthesis `(` must have a matching closing parenthesis `)`. If you forget a quote or parenthesis, Python halts immediately with a SyntaxError!",
+          "codeExample": "print(\"Spell step 1\")\nprint(\"Spell step 2\")",
+          "outputExample": "Spell step 1\nSpell step 2",
+          "tip": "Always watch your brackets: every opened '(' must have a closing ')'."
         }
       ],
       "challenges": [
         {
           "id": "c1-predict-print",
           "title": "Output Prediction Trial",
-          "type": "predict-output",
-          "instructions": "Inspect the Python code snippet below. What will be displayed on the console screen?",
+          "type": "multiple-choice",
+          "instructions": "What will this code print?",
           "question": "print(\"Hello Python\")",
           "options": [
-            "Hello Python",
-            "\"Hello Python\"",
-            "print(\"Hello Python\")",
-            "Error"
+            "A. Hello Python",
+            "B. hello python",
+            "C. Python Error",
+            "D. Nothing"
           ],
-          "answer": "Hello Python",
+          "answer": "A. Hello Python",
           "hints": [
-            "Remember that print() outputs the text inside the quotes, but does not print the quotation marks themselves."
+            "Remember that print() outputs the text inside the quotes with exact capitalization, but does not print the quotation marks themselves."
           ],
-          "explanation": "Correct! The print() function displays the text content inside quotes. The quotation marks tell Python it is text, but are not printed.",
-          "xpReward": 40,
-          "coinReward": 10
+          "explanation": "Correct! print(\"Hello Python\") displays 'Hello Python' with exact letters and capitalization. The quotes indicate text to Python, but are not printed.",
+          "xpReward": 20,
+          "coinReward": 5
         },
         {
-          "id": "c1-write-print",
-          "title": "Cast the print() Spell",
-          "type": "write-code",
-          "instructions": "Write a Python statement that prints the exact message 'Hello Python' to the console output.",
-          "starterCode": "# Write your code below to print Hello Python\n",
+          "id": "c2-fix-the-spell",
+          "title": "Fix the Broken Spell",
+          "type": "fix-bug",
+          "instructions": "The spell is broken! Fix the syntax error in the code below so it successfully prints 'Hello Python':",
+          "question": "print(\"Hello Python\"",
+          "starterCode": "print(\"Hello Python\"",
           "solution": "print(\"Hello Python\")",
           "testCases": [
             {
@@ -71,11 +89,34 @@
             }
           ],
           "hints": [
-            "Use the print() function: print(\"Hello Python\")"
+            "Notice that the opening parenthesis '(' is never closed!",
+            "Add a closing parenthesis ')' at the very end of the line: print(\"Hello Python\")"
+          ],
+          "explanation": "Spell Repaired! You restored the missing closing parenthesis. In Python, every opened parenthesis must have a closing one!",
+          "xpReward": 20,
+          "coinReward": 5
+        },
+        {
+          "id": "c3-write-first-program",
+          "title": "Your First Python Program",
+          "type": "write-code",
+          "instructions": "Write a Python program that prints: Hello Python",
+          "starterCode": "print(\"\")",
+          "solution": "print(\"Hello Python\")",
+          "testCases": [
+            {
+              "input": "",
+              "expectedOutput": "Hello Python",
+              "hidden": false
+            }
+          ],
+          "hints": [
+            "Type Hello Python inside the quotation marks: print(\"Hello Python\")",
+            "Make sure to match the exact casing and spacing: Hello Python"
           ],
           "explanation": "Brilliant! You wrote and executed your very first Python program in the browser sandbox!",
-          "xpReward": 60,
-          "coinReward": 15
+          "xpReward": 20,
+          "coinReward": 5
         }
       ]
     },
