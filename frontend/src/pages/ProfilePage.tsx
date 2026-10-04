@@ -3,7 +3,7 @@ import type { PlayerProfile } from '../types/profile';
 import type { ProgressState } from '../types/progress';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { Shield, Sparkles, Coins, Trophy, Award, RotateCcw } from 'lucide-react';
+import { Shield, Sparkles, Coins, Trophy, Award, RotateCcw, Crown } from 'lucide-react';
 
 export interface ProfilePageProps {
   profile: PlayerProfile;
@@ -107,7 +107,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
               className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center gap-3"
             >
               <div className="w-10 h-10 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-                <Sparkles size={20} />
+                {badge.icon === 'crown' ? (
+                  <Crown size={20} className="text-amber-300" />
+                ) : (
+                  <Sparkles size={20} />
+                )}
               </div>
               <div>
                 <h4 className="text-xs font-bold text-white">{badge.name}</h4>

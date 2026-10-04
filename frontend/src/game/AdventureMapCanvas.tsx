@@ -3,7 +3,7 @@ import type { World, Level } from '../types/world';
 import type { ProgressState, LevelStatus } from '../types/progress';
 import type { PlayerProfile } from '../types/profile';
 import { AVATAR_OPTIONS } from '../data/defaultCurriculum';
-import { Lock, Check, Play, Sparkles } from 'lucide-react';
+import { Lock, Check, Play, Sparkles, Crown } from 'lucide-react';
 
 export interface AdventureMapCanvasProps {
   world: World;
@@ -48,6 +48,10 @@ export const AdventureMapCanvas: React.FC<AdventureMapCanvasProps> = ({
     onOpenLevelOverview(level);
   };
 
+  const completedInWorld = world.levels.filter((l) =>
+    progress.completedLevels.includes(l.id)
+  ).length;
+
   return (
     <div className="relative w-full max-w-5xl mx-auto rounded-3xl overflow-hidden border-2 border-slate-800 bg-slate-950/85 shadow-2xl backdrop-blur-md">
       {/* World Map Header */}
@@ -72,7 +76,7 @@ export const AdventureMapCanvas: React.FC<AdventureMapCanvasProps> = ({
         <div className="text-left sm:text-right bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80 shrink-0">
           <p className="text-[11px] text-slate-400 font-bold uppercase">Map Progress</p>
           <p className="text-base font-black text-amber-300">
-            {progress.completedLevels.length} / {world.levels.length} Cleared
+            {completedInWorld} / {world.levels.length} Cleared
           </p>
         </div>
       </div>
@@ -80,8 +84,8 @@ export const AdventureMapCanvas: React.FC<AdventureMapCanvasProps> = ({
       {/* SVG Map Canvas with Animated Trails & Nodes */}
       <div className="relative w-full h-[460px] sm:h-[490px] bg-adventure-grid flex items-center justify-center overflow-x-auto">
         <svg
-          viewBox="0 0 800 450"
-          className="w-full h-full min-w-[700px] select-none"
+          viewBox="0 0 960 480"
+          className="w-full h-full min-w-[800px] select-none"
         >
           {/* Gradient & Glow Filters */}
           <defs>
@@ -148,28 +152,30 @@ export const AdventureMapCanvas: React.FC<AdventureMapCanvasProps> = ({
                 {/* Active Pulse Animation */}
                 {isAvailable && (
                   <circle
-                    r="36"
+                    r={level.boss ? "40" : "36"}
                     fill="none"
-                    stroke="#38bdf8"
+                    stroke={level.boss ? "#f59e0b" : "#38bdf8"}
                     strokeWidth="2.5"
-                    opacity="0.5"
+                    opacity="0.6"
                     className="animate-ping"
                   />
                 )}
 
                 {/* Main Node Base */}
                 <circle
-                  r="30"
-                  fill={isCompleted ? '#064e3b' : isAvailable ? '#0f172a' : '#111827'}
-                  stroke={
-                    isCompleted
-                      ? '#10b981'
-                      : isAvailable
-                      ? '#38bdf8'
-                      : '#374151'
+                  r={level.boss ? "34" : "30"}
+                  fill={
+                    level.boss
+                      ? isCompleted ? '#451a03' : isAvailable ? '#311042' : '#111827'
+                      : isCompleted ? '#064e3b' : isAvailable ? '#0f172a' : '#111827'
                   }
-                  strokeWidth={isAvailable || isCompleted ? '3.5' : '2.5'}
-                  filter={isAvailable || isCompleted ? 'url(#nodeGlow)' : undefined}
+                  stroke={
+                    level.boss
+                      ? isCompleted ? '#fbbf24' : isAvailable ? '#c084fc' : '#475569'
+                      : isCompleted ? '#10b981' : isAvailable ? '#38bdf8' : '#374151'
+                  }
+                  strokeWidth={level.boss ? '4' : isAvailable || isCompleted ? '3.5' : '2.5'}
+                  filter={isAvailable || isCompleted || level.boss ? 'url(#nodeGlow)' : undefined}
                 />
 
                 {/* Node Status Icon */}
@@ -182,35 +188,53 @@ export const AdventureMapCanvas: React.FC<AdventureMapCanvasProps> = ({
                   />
                 )}
                 {isAvailable && (
-                  <Play
-                    x="-8"
-                    y="-9"
-                    size={18}
-                    className="text-sky-300 fill-sky-300"
-                  />
+                  level.boss ? (
+                    <Crown
+                      x="-11"
+                      y="-11"
+                      size={22}
+                      className="text-amber-400 fill-amber-400/30 animate-pulse"
+                    />
+                  ) : (
+                    <Play
+                      x="-8"
+                      y="-9"
+                      size={18}
+                      className="text-sky-300 fill-sky-300"
+                    />
+                  )
                 )}
                 {isCompleted && (
-                  <Check
-                    x="-10"
-                    y="-10"
-                    size={20}
-                    className="text-emerald-300 stroke-[3]"
-                  />
+                  level.boss ? (
+                    <Crown
+                      x="-11"
+                      y="-11"
+                      size={22}
+                      className="text-amber-300 fill-amber-400 stroke-[2.5]"
+                    />
+                  ) : (
+                    <Check
+                      x="-10"
+                      y="-10"
+                      size={20}
+                      className="text-emerald-300 stroke-[3]"
+                    />
+                  )
                 )}
 
                 {/* Level Title and Order Labels */}
                 <text
-                  y="48"
+                  y="52"
                   textAnchor="middle"
-                  fill={isLocked ? '#64748b' : '#f8fafc'}
+                  fill={level.boss ? (isLocked ? '#a16207' : '#fbbf24') : (isLocked ? '#64748b' : '#f8fafc')}
                   fontSize="12"
-                  fontWeight="bold"
+                  fontWeight="black"
                   className="select-none font-sans"
                 >
-                  Level {level.order}
+                  {level.boss ? '👑 BOSS TRIAL' : `Quest ${level.order}`}
                 </text>
                 <text
-                  y="62"
+                  y="66"
                   textAnchor="middle"
                   fill={isLocked ? '#475569' : '#94a3b8'}
                   fontSize="10"

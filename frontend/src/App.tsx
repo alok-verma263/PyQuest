@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import type { World, Level } from './types/world';
 import type { ProgressState, LevelProgress } from './types/progress';
 import type { PlayerProfile } from './types/profile';
-import { DEFAULT_WORLD_1 } from './data/defaultCurriculum';
+import { DEFAULT_WORLD_1, ALL_DEFAULT_WORLDS } from './data/defaultCurriculum';
 import { StorageService } from './services/storageService';
 import { ApiService } from './services/api';
 import { useAudio } from './hooks/useAudio';
@@ -23,7 +23,9 @@ export const App: React.FC = () => {
   const { muted, toggleMute, playSound } = useAudio();
 
   const [activeTab, setActiveTab] = useState<NavTab>('home');
-  const [activeWorld, setActiveWorld] = useState<World>(DEFAULT_WORLD_1);
+  const [worlds, setWorlds] = useState<World[]>(ALL_DEFAULT_WORLDS);
+  const [activeWorldId, setActiveWorldId] = useState<string>('python-basics');
+  const activeWorld = worlds.find((w) => w.id === activeWorldId) || worlds[0] || DEFAULT_WORLD_1;
   const [activeLevel, setActiveLevel] = useState<Level | null>(null);
 
   const [profile, setProfile] = useState<PlayerProfile>(() => StorageService.getProfile());
@@ -44,9 +46,9 @@ export const App: React.FC = () => {
         const health = await ApiService.checkHealth();
         if (isMounted) setBackendStatus(health.status);
 
-        const worlds = await ApiService.getWorlds();
-        if (isMounted && worlds && worlds.length > 0) {
-          setActiveWorld(worlds[0]);
+        const fetchedWorlds = await ApiService.getWorlds();
+        if (isMounted && fetchedWorlds && fetchedWorlds.length > 0) {
+          setWorlds(fetchedWorlds);
         }
 
         const userProgress = await ApiService.getProgress(profile.id);
@@ -92,6 +94,31 @@ export const App: React.FC = () => {
     setActiveLevel(level);
   }, []);
 
+  // Handle Intermediate Challenge Rewards
+  const handleAwardReward = useCallback((earnedXp: number, earnedCoins: number) => {
+    setProfile((prev) => {
+      const newXp = prev.xp + earnedXp;
+      let newLevel = prev.level;
+      let newXpToNext = prev.xpToNextLevel;
+
+      if (newXp >= prev.xpToNextLevel) {
+        newLevel += 1;
+        newXpToNext = Math.round(prev.xpToNextLevel * 1.5);
+      }
+
+      const updatedProfile: PlayerProfile = {
+        ...prev,
+        xp: newXp,
+        level: newLevel,
+        xpToNextLevel: newXpToNext,
+        coins: prev.coins + earnedCoins,
+      };
+
+      ApiService.saveProfile(updatedProfile);
+      return updatedProfile;
+    });
+  }, []);
+
   // Handle Level Completion & Progression Unlocking
   const handleLevelComplete = useCallback(
     (levelId: string, earnedXp: number, earnedCoins: number) => {
@@ -135,10 +162,12 @@ export const App: React.FC = () => {
           },
         };
 
-        // Determine next level to unlock
-        const currentLevelObj = activeWorld.levels.find((l) => l.id === levelId);
+        // Determine next level to unlock across worlds
+        const parentWorld =
+          worlds.find((w) => w.levels.some((l) => l.id === levelId)) || activeWorld;
+        const currentLevelObj = parentWorld.levels.find((l) => l.id === levelId);
         if (currentLevelObj) {
-          const nextLevelObj = activeWorld.levels.find(
+          const nextLevelObj = parentWorld.levels.find(
             (l) => l.order === currentLevelObj.order + 1
           );
           if (nextLevelObj) {
@@ -154,6 +183,17 @@ export const App: React.FC = () => {
           }
         }
 
+        // When completing tutorial / world 1, unlock Data Cleaning realm quest 1
+        const dataCleaningFirstLevel = worlds.find((w) => w.id === 'data-cleaning')?.levels[0];
+        if (dataCleaningFirstLevel && !updatedLevelStates[dataCleaningFirstLevel.id]) {
+          updatedLevelStates[dataCleaningFirstLevel.id] = {
+            levelId: dataCleaningFirstLevel.id,
+            status: 'AVAILABLE',
+            score: 0,
+            stars: 0,
+          };
+        }
+
         const updatedProgress: ProgressState = {
           ...prev,
           completedLevels,
@@ -163,8 +203,33 @@ export const App: React.FC = () => {
         ApiService.saveProgress(updatedProgress);
         return updatedProgress;
       });
+
+      // Special Reward: If boss trial completed, bestow the "Master of Clean Data" badge
+      if (levelId === 'quest-7-clean-data-boss' || levelId === 'data-cleaning-q7') {
+        setProfile((prevProf) => {
+          const hasBadge = prevProf.badges.some((b) => b.id === 'badge-clean-data-master');
+          if (!hasBadge) {
+            const updated = {
+              ...prevProf,
+              badges: [
+                ...prevProf.badges,
+                {
+                  id: 'badge-clean-data-master',
+                  name: 'Master of Clean Data',
+                  description: 'Conquered the Clean Data Trial workflow and mastered Module 1.',
+                  icon: 'crown',
+                  unlockedAt: new Date().toISOString(),
+                },
+              ],
+            };
+            ApiService.saveProfile(updated);
+            return updated;
+          }
+          return prevProf;
+        });
+      }
     },
-    [activeWorld.levels]
+    [activeWorld, worlds]
   );
 
   // Handle Full Progress Reset
@@ -220,6 +285,7 @@ export const App: React.FC = () => {
               setActiveLevel(null);
               setActiveTab('adventure');
             }}
+            onAwardReward={handleAwardReward}
             onLevelComplete={handleLevelComplete}
             onPlaySound={playSound}
           />
@@ -249,6 +315,8 @@ export const App: React.FC = () => {
             {activeTab === 'adventure' && (
               <AdventurePage
                 world={activeWorld}
+                worlds={worlds}
+                onSelectWorld={(w) => setActiveWorldId(w.id)}
                 progress={progress}
                 profile={profile}
                 onStartLevel={handleStartLevel}
@@ -259,13 +327,18 @@ export const App: React.FC = () => {
             {activeTab === 'practice' && (
               <PracticePage
                 world={activeWorld}
+                worlds={worlds}
                 onSelectLevel={handleStartLevel}
                 onPlaySound={playSound}
               />
             )}
 
             {activeTab === 'progress' && (
-              <ProgressPage world={activeWorld} progress={progress} />
+              <ProgressPage
+                world={activeWorld}
+                worlds={worlds}
+                progress={progress}
+              />
             )}
 
             {activeTab === 'profile' && (
