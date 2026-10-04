@@ -211,7 +211,15 @@ finally:
       let attendanceMissing = 2;
       let hasGenderDummies = false;
 
-      for (const rawLine of lines) {
+      // Syntax error check: unclosed parentheses across script
+      const totalOpenParens = (code.match(/\(/g) || []).length;
+      const totalCloseParens = (code.match(/\)/g) || []).length;
+      if (totalOpenParens > totalCloseParens) {
+        err = "SyntaxError: '(' was never closed";
+      }
+
+      if (!err) {
+        for (const rawLine of lines) {
         const line = rawLine.trim();
         if (!line || line.startsWith('#')) continue;
 
@@ -301,7 +309,8 @@ finally:
           }
         }
       }
-    } catch (e) {
+    }
+  } catch (e) {
       err = `Simulation Error: ${(e as Error).message}`;
     }
 

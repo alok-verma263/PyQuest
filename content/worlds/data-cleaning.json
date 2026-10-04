@@ -186,21 +186,22 @@
           "id": "c2-fix-import-syntax",
           "title": "Repair Broken Import Statement",
           "type": "fix-bug",
-          "instructions": "The import incantation is broken! Add the missing parentheses to call pd.read_csv correctly:",
-          "question": "df = pd.read_csv \"student_performance.csv\"",
-          "starterCode": "df = pd.read_csv \"student_performance.csv\"",
-          "solution": "df = pd.read_csv(\"student_performance.csv\")",
+          "instructions": "The import statement is broken! Notice that read_csv is missing its closing parenthesis. Move to the second line and add the missing ')' character:",
+          "question": "import pandas as pd\n\ndf = pd.read_csv(\"student_performance.csv\"",
+          "starterCode": "import pandas as pd\n\ndf = pd.read_csv(\"student_performance.csv\"",
+          "solution": "import pandas as pd\n\ndf = pd.read_csv(\"student_performance.csv\")",
           "testCases": [
             {
               "input": "",
-              "expectedOutput": "(10, 9)",
+              "expectedOutput": "",
               "hidden": false
             }
           ],
           "hints": [
-            "Function arguments in Python must be enclosed in parentheses: pd.read_csv(\"...\")"
+            "Function calls in Python require matching opening '(' and closing ')' parentheses.",
+            "Move your cursor to the end of line 3 and add the missing closing parenthesis ')'"
           ],
-          "explanation": "Spell Repaired! Function arguments in Python must be passed within parentheses.",
+          "explanation": "Spell Repaired! You restored the missing closing parenthesis to pd.read_csv(\"student_performance.csv\").",
           "xpReward": 25,
           "coinReward": 5,
           "tableDataset": "student_performance"
@@ -444,13 +445,13 @@
           "title": "Fix Median Imputation Code",
           "type": "fix-bug",
           "instructions": "The median imputation code is missing parentheses on the .median method call. Repair it:",
-          "question": "df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median)",
-          "starterCode": "df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median)",
-          "solution": "df[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())",
+          "question": "import pandas as pd\n\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median)",
+          "starterCode": "import pandas as pd\n\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median)",
+          "solution": "import pandas as pd\n\ndf = pd.read_csv(\"student_performance.csv\")\ndf[\"Marks\"] = df[\"Marks\"].fillna(df[\"Marks\"].median())",
           "testCases": [
             {
               "input": "",
-              "expectedOutput": "0",
+              "expectedOutput": "",
               "hidden": false
             }
           ],

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import type { Challenge } from '../../types/world';
 import { Button } from '../../components/common/Button';
 import { pyodideRunner } from '../../services/pyodideRunner';
@@ -21,6 +21,12 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [feedback, setFeedback] = useState<string | null>(null);
   const [revealedHints, setRevealedHints] = useState<number>(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Line numbers calculation for gutter
+  const lines = code.split('\n');
+  const lineCount = lines.length;
+  const lineNumbers = Array.from({ length: Math.max(1, lineCount) }, (_, i) => i + 1);
 
   const handleReset = () => {
     onPlaySound('click');
@@ -34,6 +40,90 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
     setRevealedHints((prev) => Math.min(challenge.hints.length, prev + 1));
   };
 
+  // Keyboard navigation: Enter (auto-indent), Tab (4 spaces), Shift+Tab (outdent)
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    if (e.key === 'Enter') {
+      // Prevent accidental form submission
+      e.preventDefault();
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+
+      // Determine indentation of the current line
+      const lineStart = code.lastIndexOf('\n', start - 1) + 1;
+      const currentLine = code.substring(lineStart, start);
+
+      const indentMatch = currentLine.match(/^[ \t]*/);
+      let indent = indentMatch ? indentMatch[0] : '';
+
+      // If line ends with colon (:), add 4 spaces indentation
+      if (currentLine.trimEnd().endsWith(':')) {
+        indent += '    ';
+      }
+
+      const insertion = '\n' + indent;
+      const newCode = code.substring(0, start) + insertion + code.substring(end);
+      setCode(newCode);
+
+      if (status !== 'idle') {
+        setStatus('idle');
+        setFeedback(null);
+      }
+
+      // Update cursor position after state update
+      const newCursor = start + insertion.length;
+      requestAnimationFrame(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursor;
+        }
+      });
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+
+      if (e.shiftKey) {
+        // Shift + Tab: outdent line
+        const lineStart = code.lastIndexOf('\n', start - 1) + 1;
+        const linePrefix = code.substring(lineStart, lineStart + 4);
+        const spacesToRemove = linePrefix.match(/^ {1,4}/);
+        if (spacesToRemove) {
+          const count = spacesToRemove[0].length;
+          const newCode = code.substring(0, lineStart) + code.substring(lineStart + count);
+          setCode(newCode);
+          const newCursor = Math.max(lineStart, start - count);
+          requestAnimationFrame(() => {
+            if (textareaRef.current) {
+              textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursor;
+            }
+          });
+        }
+      } else {
+        // Tab: insert 4 spaces
+        const newCode = code.substring(0, start) + '    ' + code.substring(end);
+        setCode(newCode);
+        const newCursor = start + 4;
+        requestAnimationFrame(() => {
+          if (textareaRef.current) {
+            textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursor;
+          }
+        });
+      }
+
+      if (status !== 'idle') {
+        setStatus('idle');
+        setFeedback(null);
+      }
+    }
+  };
+
   const handleTestFix = async () => {
     onPlaySound('click');
     setIsTesting(true);
@@ -43,29 +133,67 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
     try {
       const res = await pyodideRunner.runCode(code, '');
       const actualOutput = res.stdout.trim();
-      const expectedOutput = challenge.testCases?.[0]?.expectedOutput?.trim() || 'Hello Python';
+      const expectedOutput = challenge.testCases?.[0]?.expectedOutput?.trim();
 
-      // Check for syntax error or missing closing parenthesis
-      if (res.error || !code.includes(')')) {
+      // Check for syntax error or execution error
+      if (res.error) {
         onPlaySound('error');
         setStatus('error');
-        if (!code.includes(')')) {
+        const openParenCount = (code.match(/\(/g) || []).length;
+        const closeParenCount = (code.match(/\)/g) || []).length;
+
+        if (openParenCount > closeParenCount) {
           setFeedback(
-            "❌ Not quite. The spell still has an unclosed parenthesis! Remember: every opening parenthesis '(' must have a matching closing parenthesis ')' at the end."
+            "❌ Syntax error: Unclosed parenthesis detected! Remember: every opening '(' must have a matching closing ')'."
           );
         } else {
-          setFeedback(`❌ Not quite. Python error: ${res.error}. Make sure quotes and brackets are properly closed.`);
+          setFeedback(`❌ Python error: ${res.error}. Check your syntax and closing symbols.`);
         }
-      } else if (actualOutput !== expectedOutput) {
+        return;
+      }
+
+      // Check solution correctness
+      const normalizeCompact = (s: string) => s.replace(/\s+/g, ' ').trim();
+      const userCompact = normalizeCompact(code);
+      const solutionCompact = challenge.solution ? normalizeCompact(challenge.solution) : '';
+
+      let isCorrect = false;
+
+      // 1. Solution match
+      if (challenge.solution) {
+        if (userCompact === solutionCompact) {
+          isCorrect = true;
+        } else if (challenge.id === 'c2-fix-import-syntax') {
+          isCorrect = code.includes('read_csv("student_performance.csv")') || code.includes("read_csv('student_performance.csv')");
+        } else if (challenge.id === 'c4-fix-median-fillna') {
+          isCorrect = code.includes('.median()');
+        } else if (challenge.id === 'c2-fix-the-spell') {
+          isCorrect = code.includes('print("Hello Python")') || code.includes("print('Hello Python')");
+        }
+      }
+
+      // 2. Expected output match
+      if (!isCorrect && expectedOutput) {
+        if (actualOutput === expectedOutput) {
+          isCorrect = true;
+        }
+      }
+
+      // 3. Fallback: if no solution defined and no testCase expected output, lack of error is success
+      if (!challenge.solution && !expectedOutput) {
+        isCorrect = true;
+      }
+
+      if (!isCorrect) {
         onPlaySound('error');
         setStatus('error');
-        if (!actualOutput) {
+        if (expectedOutput && actualOutput !== expectedOutput) {
           setFeedback(
-            `❌ Not quite. The program didn't print the message. Make sure your code is: print("Hello Python")`
+            `❌ Expected output "${expectedOutput}", but received "${actualOutput || '(no output)'}". Check your code carefully!`
           );
         } else {
           setFeedback(
-            `❌ Not quite. Expected output: "${expectedOutput}", but received: "${actualOutput}". Check the text inside the quotes!`
+            "❌ The code ran, but the syntax bug is not fully repaired yet. Check the instructions or use a hint!"
           );
         }
       } else {
@@ -74,7 +202,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
         setStatus('success');
         setFeedback(
           challenge.explanation ||
-            "✅ Correct! Spell Repaired! You restored the missing closing parenthesis ')' and fixed the syntax error."
+            "✅ Correct! Code Repaired! You fixed the syntax error and executed valid Python code."
         );
         setTimeout(() => {
           onSuccess();
@@ -116,23 +244,32 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
           {challenge.instructions}
         </h4>
         <p className="text-xs text-slate-400">
-          Examine the broken spell below. Identify the missing syntax character and fix it!
+          Examine the broken code below. Identify the missing syntax character and fix it!
         </p>
       </div>
 
-      {/* Code Editor Box */}
+      {/* Code Editor Box with Line Numbers */}
       <div className="rounded-2xl border-2 border-slate-700/80 bg-slate-950 overflow-hidden shadow-inner">
         <div className="flex items-center justify-between px-4 py-2 bg-slate-900 border-b border-slate-800 text-xs text-slate-400">
           <span className="font-mono text-amber-300 flex items-center gap-1.5">
             <AlertTriangle size={13} className="text-amber-400" />
-            broken_spell.py
+            script.py
           </span>
-          <span className="text-[11px] text-slate-500 font-mono">Editable</span>
+          <span className="text-[11px] text-slate-500 font-mono">Multi-line Editor</span>
         </div>
 
-        <div className="p-4">
-          <input
-            type="text"
+        {/* Editor Body */}
+        <div className="flex bg-slate-950 min-h-[120px] font-mono text-sm leading-6">
+          {/* Line Numbers Gutter */}
+          <div className="py-3 px-3.5 select-none text-right text-slate-600 bg-slate-950/80 border-r border-slate-800 font-mono text-xs leading-6">
+            {lineNumbers.map((num) => (
+              <div key={num}>{num}</div>
+            ))}
+          </div>
+
+          {/* Multi-line Textarea */}
+          <textarea
+            ref={textareaRef}
             value={code}
             onChange={(e) => {
               setCode(e.target.value);
@@ -141,11 +278,13 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
                 setFeedback(null);
               }
             }}
+            onKeyDown={handleKeyDown}
             spellCheck="false"
             autoCapitalize="off"
             autoComplete="off"
-            className="w-full bg-slate-900/90 text-emerald-300 font-mono text-base px-4 py-3 rounded-xl border border-slate-700 focus:border-sky-400 outline-none select-text transition-colors"
-            placeholder='print("Hello Python")'
+            rows={Math.max(4, lineCount)}
+            className="flex-1 p-3 bg-transparent text-emerald-300 font-mono text-sm leading-6 outline-none resize-none whitespace-pre overflow-x-auto select-text placeholder-slate-600 focus:bg-slate-900/30 transition-colors"
+            placeholder="# Enter Python code here..."
           />
         </div>
       </div>
@@ -201,7 +340,7 @@ export const FixCodeChallenge: React.FC<FixCodeChallengeProps> = ({
             icon={<Play size={15} className="fill-current" />}
             onClick={handleTestFix}
           >
-            {isTesting ? 'Testing Spell...' : 'Cast Spell'}
+            {isTesting ? 'Testing Fix...' : 'Cast Spell & Test Fix ⚡'}
           </Button>
         </div>
       </div>

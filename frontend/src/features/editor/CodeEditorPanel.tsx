@@ -32,22 +32,73 @@ export const CodeEditorPanel: React.FC<CodeEditorPanelProps> = ({
   const [revealedHints, setRevealedHints] = useState<number>(0);
   const [showExplanation, setShowExplanation] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  // Handle Tab key indentation (4 spaces)
+  // Handle Enter (auto-indentation) and Tab (4 spaces)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const textarea = textareaRef.current;
-      if (!textarea) return;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
 
+    if (e.key === 'Enter') {
+      e.preventDefault();
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
-      const newCode = code.substring(0, start) + '    ' + code.substring(end);
+
+      // Find start of current line
+      const lineStart = code.lastIndexOf('\n', start - 1) + 1;
+      const currentLine = code.substring(lineStart, start);
+
+      const indentMatch = currentLine.match(/^[ \t]*/);
+      let indent = indentMatch ? indentMatch[0] : '';
+
+      // If line ends with colon, indent by an extra 4 spaces
+      if (currentLine.trimEnd().endsWith(':')) {
+        indent += '    ';
+      }
+
+      const insertion = '\n' + indent;
+      const newCode = code.substring(0, start) + insertion + code.substring(end);
       setCode(newCode);
 
-      // Restore cursor position after state update
-      setTimeout(() => {
-        textarea.selectionStart = textarea.selectionEnd = start + 4;
-      }, 0);
+      const newCursor = start + insertion.length;
+      requestAnimationFrame(() => {
+        if (textareaRef.current) {
+          textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursor;
+        }
+      });
+      return;
+    }
+
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+
+      if (e.shiftKey) {
+        // Shift + Tab: outdent
+        const lineStart = code.lastIndexOf('\n', start - 1) + 1;
+        const linePrefix = code.substring(lineStart, lineStart + 4);
+        const spacesToRemove = linePrefix.match(/^ {1,4}/);
+        if (spacesToRemove) {
+          const count = spacesToRemove[0].length;
+          const newCode = code.substring(0, lineStart) + code.substring(lineStart + count);
+          setCode(newCode);
+          const newCursor = Math.max(lineStart, start - count);
+          requestAnimationFrame(() => {
+            if (textareaRef.current) {
+              textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursor;
+            }
+          });
+        }
+      } else {
+        // Tab: insert 4 spaces
+        const newCode = code.substring(0, start) + '    ' + code.substring(end);
+        setCode(newCode);
+        const newCursor = start + 4;
+        requestAnimationFrame(() => {
+          if (textareaRef.current) {
+            textareaRef.current.selectionStart = textareaRef.current.selectionEnd = newCursor;
+          }
+        });
+      }
     }
   };
 
