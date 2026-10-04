@@ -101,8 +101,20 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
           <h2 className="text-base font-extrabold text-white">{level.title}</h2>
         </div>
 
-        {/* Quest Sub-Stage Indicator */}
-        <div className="flex items-center gap-2">
+        {/* Quest Sub-Stage Indicator & Rewards */}
+        <div className="flex items-center gap-2.5">
+          {phase === 'challenges' && currentChallenge && (
+            <div className="hidden sm:flex items-center gap-2 text-xs font-bold mr-1">
+              <span className="flex items-center gap-1 text-sky-400 bg-sky-950/60 px-2 py-0.5 rounded border border-sky-600/30">
+                <Sparkles size={12} />
+                +{currentChallenge.xpReward} XP
+              </span>
+              <span className="flex items-center gap-1 text-amber-400 bg-amber-950/60 px-2 py-0.5 rounded border border-amber-600/30">
+                <Coins size={12} />
+                +{currentChallenge.coinReward}
+              </span>
+            </div>
+          )}
           {level.lessons.length > 0 && (
             <span
               className={`px-2.5 py-1 rounded-md text-[11px] font-bold ${
@@ -137,40 +149,42 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
 
       {phase === 'challenges' && currentChallenge && (
         <div className="space-y-4">
-          {/* Challenge Prompt Header */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-black uppercase text-amber-400 bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-600/40">
-                Trial #{currentChallengeIndex + 1} of {level.challenges.length}
-              </span>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-sky-400">
-                  <Sparkles size={13} />
-                  +{currentChallenge.xpReward} XP
-                </div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
-                  <Coins size={13} />
-                  +{currentChallenge.coinReward} Coins
+          {/* Challenge Prompt Header (for quiz and write-code challenges; fix-bug has its own immersive quest card layout) */}
+          {currentChallenge.type !== 'fix-bug' && (
+            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-md">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-black uppercase text-amber-400 bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-600/40">
+                  Trial #{currentChallengeIndex + 1} of {level.challenges.length}
+                </span>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-sky-400">
+                    <Sparkles size={13} />
+                    +{currentChallenge.xpReward} XP
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400">
+                    <Coins size={13} />
+                    +{currentChallenge.coinReward} Coins
+                  </div>
                 </div>
               </div>
+              <h3 className="text-lg font-black text-white">{currentChallenge.title}</h3>
+              <p className="text-sm text-slate-300 mt-1">{currentChallenge.instructions}</p>
+
+              {/* In-Quest Dataset Table Preview */}
+              {currentChallenge.tableDataset && (
+                <div className="mt-4 pt-3 border-t border-slate-800">
+                  <DatasetTablePreview datasetId={currentChallenge.tableDataset} />
+                </div>
+              )}
+
+              {/* In-Quest Chart Preview */}
+              {currentChallenge.chartPreview && (
+                <div className="mt-4 pt-3 border-t border-slate-800">
+                  <ChartPreview chart={currentChallenge.chartPreview} />
+                </div>
+              )}
             </div>
-            <h3 className="text-lg font-black text-white">{currentChallenge.title}</h3>
-            <p className="text-sm text-slate-300 mt-1">{currentChallenge.instructions}</p>
-
-            {/* In-Quest Dataset Table Preview */}
-            {currentChallenge.tableDataset && (
-              <div className="mt-4 pt-3 border-t border-slate-800">
-                <DatasetTablePreview datasetId={currentChallenge.tableDataset} />
-              </div>
-            )}
-
-            {/* In-Quest Chart Preview */}
-            {currentChallenge.chartPreview && (
-              <div className="mt-4 pt-3 border-t border-slate-800">
-                <ChartPreview chart={currentChallenge.chartPreview} />
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Render Challenge by Type */}
           {currentChallenge.type === 'multiple-choice' ||
@@ -185,6 +199,9 @@ export const QuestContainer: React.FC<QuestContainerProps> = ({
             <FixCodeChallenge
               key={currentChallenge.id}
               challenge={currentChallenge}
+              questTitle={level.title}
+              trialNumber={currentChallengeIndex + 1}
+              totalTrials={level.challenges.length}
               onSuccess={handleChallengeSuccess}
               onPlaySound={onPlaySound}
             />
